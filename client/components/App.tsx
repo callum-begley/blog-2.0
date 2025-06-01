@@ -1,10 +1,23 @@
 import { Outlet } from 'react-router'
+import '../styles/main.css'
+import Footer from './Footer'
+import Header from './Header'
+import { useState } from 'react'
 
 function App() {
+  const [darkMode, setDarkMode] = useState(true)
+
+  function switchMode(){
+    setDarkMode((x) => !x)
+  }
+
   return (
-    <div>
-      <h1>App Header</h1>
-      <Outlet />
+    <div className={darkMode ? 'dark' : 'light'}>
+      <Header onClick={switchMode} currentMode={darkMode}/>
+      <div  className='dark:bg-zinc-950 dark:text-white bg-zinc-200 text-black' >
+        <Outlet />
+      </div>
+      <Footer />
     </div>
   )
 }

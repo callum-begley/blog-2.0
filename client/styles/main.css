@@ -1,3 +1,19 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+#banner {
+  background-image: url(/images/matrix-banner.avif);
+  background-color: rgba(0, 0, 0, 0.7);
+  background-blend-mode: darken;
+  background-position: center;
+}
+
+h1 {
+  font-family: 'Rubik Glitch', system-ui;
+  font-weight: normal;
+}
+
+body{
+  margin: 0;
+}
