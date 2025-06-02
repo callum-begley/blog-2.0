@@ -77,15 +77,17 @@ const Quiz = () => {
     getQuizQuestion()
 
     if (qnum === 4){
+      //final score
+      //reset score
       setStart(false)
       setQnum(0)
-      // reset
+      // reset game
     }
   }
 
 
   return (
-    <div className="bg-transparent dark:text-white text-black rounded-lg max-w-2xl md:p-10 p-4 ring-white ring-2 justify-items-center">
+    <div className="bg-transparent dark:text-white text-black rounded-2xl max-w-2xl md:p-10 p-4 ring-white ring-2 justify-items-center">
       <h2 className='text-4xl text-center font-bold mb-8'>AI Quiz Generator</h2>
       <div>
         <div id="input" className='justify-self-center '>
@@ -98,7 +100,7 @@ const Quiz = () => {
             disabled={start}
           />
           <label className='p-2'>Difficulty:
-            <select name="difficulty" className='text-black ring-blue-400 ring-2 rounded-md p-2 m-2 shadow-lg shadow-blue-400' onChange={handleSelect} value={diff}>
+            <select name="difficulty" className='text-black ring-blue-400 ring-2 rounded-md p-2 m-2 shadow-lg shadow-blue-400' onChange={handleSelect} value={diff} disabled={start}>
               <option value="Easy">Easy</option>
               <option value="Medium">Medium</option>
               <option value="Hard">Hard</option>
@@ -107,7 +109,7 @@ const Quiz = () => {
         </div>
 
         <div className="m-4 place-items-center">
-          <button className="bg-blue-600 dark:text-white text-black rounded-full p-4 ring-white ring-2 shadow-2xl shadow-blue-400 flex"
+          <button className="bg-gradient-to-bl from-purple-500 to-blue-400 font-bold dark:text-white text-black rounded-full p-4 ring-white ring-2 shadow-2xl shadow-blue-400 flex"
             onClick={handleSubmit}
             disabled={
               isFetching ||
@@ -121,10 +123,10 @@ const Quiz = () => {
 
         <div id='quizBox' className="bg-gradient-to-bl from-blue-400 to-purple-500 text-white rounded-lg p-10 ring-white ring-2 justify-self-center shadow-lg shadow-blue-400">
           
-          {!data && !start?  <p className='text-2xl text-center font-bold mb-4'>Quiz will appear here</p> : !start ? <button className='block text-2xl justify-self-center text-center font-bold p-4 hover:bg-blue-300 ring-1 ring-white rounded-md p-2 m-4 shadow-lg shadow-blue-400' onClick={getQuizQuestion}>Start quiz</button> : ''}
+          {!data && !start?  <p className='text-2xl text-center font-bold mb-4'>Quiz will appear here</p> : !start ? <button className='block text-2xl justify-self-center text-center font-bold p-4 hover:bg-blue-300 ring-1 ring-white rounded-md p-2 m-4 shadow-lg shadow-blue-400' onClick={getQuizQuestion}>Start {text} quiz</button> : ''}
           {!start? '': <>
-          <p className='absolute -translate-x-8 -translate-y-12 p-4 text-xl font-bold'>Score: {score} <span className='text-red-600'>{scoreAlert}</span></p>
-          <h2 className='text-3xl text-center font-extrabold mb-4 text-shadow-lg text-shadow-sky-300'>{text} Quiz</h2>
+          <p className='absolute -translate-x-8 -translate-y-12 p-4 text-xl font-bold'>Score: {score} <span className='text-red-600 duration-300 animate-pulse ease-in-out'>{scoreAlert}</span></p>
+          <h2 className='text-3xl text-center font-extrabold mb-4 text-shadow-lg text-shadow-sky-300 capitalize'>{text} Quiz</h2>
           
           <div className='justify-items-center self-center w-full h-full'>
             <h2 className='md:text-2xl text-center font-bold mb-4 mt-4'>{currentQ.question}</h2>
