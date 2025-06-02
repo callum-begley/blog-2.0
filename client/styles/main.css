@@ -2,7 +2,7 @@
 @tailwind components;
 @tailwind utilities;
 
-#banner {
+.dark:banner {
   background-image: url(/images/matrix-banner.avif);
   background-color: rgba(0, 0, 0, 0.7);
   background-blend-mode: darken;
@@ -16,4 +16,11 @@ h1 {
 
 body{
   margin: 0;
+}
+
+@media (min-width: 1000px) {
+  #quizBox{
+    height: 45vh;
+    width: 30vw;
+  }
 }

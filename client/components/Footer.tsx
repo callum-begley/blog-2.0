@@ -3,9 +3,9 @@ import { Link } from "react-router"
 function Footer() {
   return (
     <>
-    <footer className= 'text-white w-screen h-40 place-content-center bg-zinc-800 pl-4'>
-      <h4 className='text-white text-xl text-nowrap mb-4 pl-2'>&copy; Copyright Callum Begley 2025</h4>
-      <div className='flex flex-nowrap text-xl text-nowrap'>
+    <footer className= 'dark:text-white static bottom-0 w-full h-40 place-content-center dark:bg-zinc-800 bg-blue-300 pl-4'>
+      <h4 className='md:text-xl mb-4 pl-2'>&copy; Copyright Callum Begley 2025</h4>
+      <div className='flex md:text-xl flex-wrap text-nowrap'>
       <p className= 'p-2'>Links: </p>
         <Link to='/' className= 'p-2 hover:text-green-500'>Home</Link>
         <Link to='/Blog' className= 'p-2 hover:text-green-500'>Blog</Link>

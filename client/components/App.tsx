@@ -12,13 +12,13 @@ function App() {
   }
 
   return (
-    <div className={darkMode ? 'dark' : 'light'}>
+    <main className={`${darkMode ? 'dark' : 'light'}`}>
       <Header onClick={switchMode} currentMode={darkMode}/>
-      <div  className='dark:bg-zinc-950 dark:text-white bg-zinc-200 text-black' >
+      <div  className='dark:bg-zinc-950 dark:text-white bg-zinc-200 text-black min-h-screen' >
         <Outlet />
       </div>
       <Footer />
-    </div>
+    </main>
   )
 }
 
