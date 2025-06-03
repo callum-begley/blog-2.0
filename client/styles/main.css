@@ -25,6 +25,13 @@ body{
   }
 }
 
+@media (max-width: 999px) {
+  #quizBox{
+    min-height: 45vh;
+    width: 60vw;
+  }
+}
+
 @media (max-width: 600px) {
   #quizBox{
     min-height: 45vh;
