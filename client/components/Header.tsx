@@ -7,7 +7,7 @@ interface HeaderProps {
 
 const Header: React.FC<HeaderProps> = ({ onClick, currentMode }) => {
   return (
-    <header className= 'relative text-white bg-zinc-700 dark:text-white max-w-full h-40 place-content-center drop-shadow-xl/50 dark:bg-zinc-900 z-40 headerGrid'>
+    <header className= 'relative text-white dark:text-white max-w-full h-40 place-content-center drop-shadow-xl/50 bg-gradient-to-tr from-zinc-900 to-slate-800 z-40 headerGrid'>
         {/* <h1 className= 'text-center md:text-6xl sm:text-4xl text-2xl md:text-nowrap'>Callum Begley .com</h1> */}
         <div className= 'w-screen h-auto place-content-center fixed'>
           <Nav/>

@@ -26,8 +26,8 @@ const FallingText: React.FC<FallingTextProps> = ({
   const containerRef = useRef<HTMLDivElement | null>(null);
   const textRef = useRef<HTMLDivElement | null>(null);
   const canvasContainerRef = useRef<HTMLDivElement | null>(null);
-
   const [effectStarted, setEffectStarted] = useState(false);
+  const [reset, setReset] = useState(0)
 
   useEffect(() => {
     if (!textRef.current) return;
@@ -47,7 +47,12 @@ const FallingText: React.FC<FallingTextProps> = ({
       .join("");
 
     textRef.current.innerHTML = newHTML;
-  }, [text, highlightWords]);
+  }, [text, highlightWords, reset]);
+
+   const handleRefresh = () => {
+    setReset(reset + 1);
+    setEffectStarted(false)
+  }
 
   useEffect(() => {
     if (trigger === "auto") {
@@ -236,12 +241,15 @@ const FallingText: React.FC<FallingTextProps> = ({
         className="inline-block"
         style={{
           // fontSize,
-          lineHeight: 0.8,
+          lineHeight:'0.8em',
         }}
       />
+      {effectStarted ? <button className='absolute top-1/4 right-10 text-sm ring-1 ring-white p-1 font-medium' onClick={() => handleRefresh()}>Reset</button> : <p className='absolute top-1/4 right-24 text-xs p-1 font-medium' >← click my name</p>}
 
       <div className="absolute top-0 left-0 z-40 justify-self-center" ref={canvasContainerRef} />
+        
     </div>
+    
   );
 };
 
