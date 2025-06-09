@@ -1,5 +1,5 @@
 import Nav from "./Nav"
-
+import FallingText from './bits/FallingText';
 interface HeaderProps {
   onClick: () => void;
   currentMode: boolean;
@@ -7,12 +7,27 @@ interface HeaderProps {
 
 const Header: React.FC<HeaderProps> = ({ onClick, currentMode }) => {
   return (
-    <header className= 'relative text-white bg-black dark:text-white max-w-full h-40 place-content-center drop-shadow-xl/50 dark:bg-[url(/images/matrix-banner.avif)] dark:bg-black dark:bg-opacity-60 dark:bg-blend-darken z-50'>
-        <h1 className= 'text-center md:text-6xl sm:text-4xl text-2xl md:text-nowrap'>Callum Begley .com</h1>
-        <div className= 'w-screen h-auto place-content-center'>
-        <Nav/>
-        <button onClick={onClick} className="absolute right-0 top-20 p-1 text-3xl bg-zinc-600 hover:bg-zinc-400 transition duration-500 ease-in-out hover:scale-110 rounded-full m-4 h-12 w-12">{currentMode ? '☀️' : '🌙'}</button>
+    <header className= 'relative text-white bg-zinc-700 dark:text-white max-w-full h-40 place-content-center drop-shadow-xl/50 dark:bg-zinc-900 z-40 headerGrid'>
+        {/* <h1 className= 'text-center md:text-6xl sm:text-4xl text-2xl md:text-nowrap'>Callum Begley .com</h1> */}
+        <div className= 'w-screen h-auto place-content-center fixed'>
+          <Nav/>
         </div>
+        <div className= 'z-40 h-60 w-9/12 justify-self-center font-bold lg:text-7xl md:text-5xl sm:text-3xl text-lg absolute top-0 m-0 p-0'>
+        <FallingText
+          text={`Callum Begley .com`}
+          highlightWords={[".", "C", "B"]}
+          highlightClass="highlighted"
+          trigger="click"
+          backgroundColor="transparent"
+          wireframes={false}
+          gravity={0.56}
+          // fontSize="5rem"
+          mouseConstraintStiffness={0.9}
+        />
+        </div>
+        
+        <button onClick={onClick} className="fixed right-0 top-10 p-1 text-3xl bg-zinc-600 hover:bg-zinc-400 transition duration-500 ease-in-out hover:scale-110 rounded-full m-4 h-12 w-12">{currentMode ? '☀️' : '🌙'}</button>
+        
     </header>
   )
 }

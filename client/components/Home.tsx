@@ -11,16 +11,9 @@ const Home = () => {
         delay={100}
         animateBy="letters"
         direction="bottom"
-        className="md:text-9xl text-5xl font-medium mb-56 mt-56"
+        className="lg:text-8xl md:text-6xl sm:text-5xl text-4xl font-bold mb-56 mt-56"
       />
-      <p className="text-4xl font-medium mb-48">Welcome to my new homepage. <em className="animate-ping ease-in-out text-lime-400">Scroll ↓</em></p>
-      <BlurText
-        text="Welcome to my new homepage. Scroll ↓"
-        delay={150}
-        animateBy="words"
-        direction="top"
-        className="text-4xl font-medium mb-48"
-      />
+      <p className="text-4xl font-medium mb-48">Welcome to my new homepage. <em className="animate-ping ease-in-out dark:text-lime-400">Scroll ↓</em></p>
       <BlurText
         text="Now powered by ⚛️React and styled with ༄Tailwind"
         delay={100}
