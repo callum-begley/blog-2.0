@@ -10,12 +10,13 @@
 }
 
 h1 {
-  font-family: 'Rubik Glitch', system-ui;
-  font-weight: normal;
+  font-family: 'Comfortaa', 'system-ui';
+  font-weight: 800;
 }
 
 body{
   margin: 0;
+  font-family: 'Open Sans', sans-serif, system-ui;
 }
 
 @media (min-width: 1000px) {

@@ -1,9 +1,9 @@
-import { SetStateAction, useState } from 'react'
+import { useState } from 'react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { getQuiz } from '../apiClient'
 import { Data, Question } from './interface'
 
-const Quiz = () => {
+const GeminiQuiz = () => {
   const [text, setText] = useState('Enter topic')
   const [diff, setDiff] = useState('Medium')
   const [qi, setQi] = useState(0)
@@ -30,9 +30,7 @@ const client = useQueryClient()
   })
   if (isError) console.log('error loading')
 
-  const handleChange = (event: {
-    target: { value: SetStateAction<string> }
-  }) => {
+  const handleChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
     setText(event.target.value)
   }
 
@@ -42,9 +40,7 @@ const client = useQueryClient()
     }
   }
 
-  const handleSelect = (event: {
-    target: { value: SetStateAction<string> }
-  }) => {
+  const handleSelect = (event: React.ChangeEvent<HTMLSelectElement>) => {
     setDiff(event.target.value)
   }
 
@@ -75,8 +71,8 @@ const client = useQueryClient()
     if (qi === 6) {
       return(
         <>
-        <p className='absolute -translate-x-8 -translate-y-12 p-4 text-xl font-bold'>Final Score: {score}/5</p>
-        <h2 className='md:text-2xl text-center font-bold mb-4 mt-4'>Answers:</h2>
+        <p className='absolute -translate-x-8 -translate-y-12 p-4 text-xl font-medium'>Final Score: {score}/5</p>
+        <h2 className='md:text-2xl text-center font-medium mb-4 mt-4'>Answers:</h2>
         {data.questions.map((x,i) => {
           if (answers[i] == x.correct_answer){
           return(<p key={x.correct_answer} className='text-black font-medium stroke-black bg-white m-2 p-2 rounded-md'>✔️ {i + 1} - {x.correct_answer}</p>)
@@ -84,13 +80,13 @@ const client = useQueryClient()
             return(<p key={x.correct_answer} className='text-red-600 font-medium stroke-black bg-white m-2 p-2 rounded-md'>❌ {i + 1} - {x.correct_answer}</p>)
           }
         })}
-        <button className='block text-lg justify-self-center text-center font-bold p-2 hover:bg-blue-300 ring-1 ring-white rounded-md m-4 shadow-lg shadow-blue-400' onClick={() => {setStart(false); setQi(0); setScore(0); setAnswers(new Array(5)); client.removeQueries({ queryKey: ['quiz'] })}}>End Quiz</button>
+        <button className='block justify-self-center text-center text-2xl font-medium p-2 hover:bg-blue-300 ring-1 ring-white rounded-md m-4 shadow-lg shadow-blue-400' onClick={() => {setStart(false); setQi(0); setScore(0); setAnswers(new Array(5)); client.removeQueries({ queryKey: ['quiz'] })}}>End Quiz</button>
         </>
       )
     }
   }
 
-   const checkAnswer = (event: {target: { value: SetStateAction<string> } }) => {
+   const checkAnswer = (event: React.ChangeEvent<HTMLSelectElement>) => {
     const newAnswers = [...answers]
     newAnswers[(qi - 1)] = event.target.value
     setAnswers(newAnswers)
@@ -111,8 +107,8 @@ const client = useQueryClient()
   }
 
   return (
-    <div className="bg-transparent dark:text-white text-black rounded-2xl md:max-w-2xl md:p-10 p-4 ring-white md:ring-2 justify-items-center">
-      <h2 className='text-4xl text-center font-bold mb-8'>AI Quiz Generator</h2>
+    <div className="bg-zinc-700 bg-opacity-70 dark:text-white text-black rounded-2xl md:max-w-2xl md:p-10 p-4 ring-white md:ring-2 justify-items-center">
+      <h2 className='text-5xl text-center font-medium mb-8'>AI Quiz Generator</h2>
       <div className='justify-items-center content-center '>
         <div id="input" className='justify-center items-center flex'>
           <label className='text-xl'>Topic: 
@@ -122,11 +118,11 @@ const client = useQueryClient()
             type="text"
             name='input'
             onFocus={() => setText('')}
-            className='text-black ring-blue-400 ring-2 rounded-md p-2 m-2 shadow-lg shadow-blue-400'
+            className='text-black ring-blue-400 ring-2 rounded-md p-2 m-2 shadow-lg shadow-blue-400 dark:bg-zinc-600 dark:text-white'
             disabled={start}
           /></label>
           <label className='text-xl'>Difficulty:
-            <select name="difficulty" className='text-black ring-blue-400 ring-2 rounded-md p-2 m-2 shadow-lg shadow-blue-400' onChange={handleSelect} value={diff} disabled={start}>
+            <select name="difficulty" className='text-black ring-blue-400 ring-2 rounded-md p-2 m-2 shadow-lg shadow-blue-400 dark:bg-zinc-600 dark:text-white' onChange={handleSelect} value={diff} disabled={start}>
               <option value="Easy">Easy</option>
               <option value="Medium">Medium</option>
               <option value="Hard">Hard</option>
@@ -135,7 +131,7 @@ const client = useQueryClient()
         </div>
 
         <div className="m-4 place-items-center">
-          <button className="bg-gradient-to-bl from-purple-500 to-blue-400 font-bold  dark:text-white text-black rounded-full p-4 ring-white ring-2 shadow-2xl shadow-blue-400 flex"
+          <button className="bg-gradient-to-bl from-purple-500 to-blue-400 font-medium text-2xl rounded-full p-4 ring-white ring-2 shadow-2xl shadow-blue-400 flex m-10"
             onClick={handleSubmit}
             disabled={
               isFetching ||
@@ -148,13 +144,13 @@ const client = useQueryClient()
 
         <div id='quizBox' className="bg-gradient-to-bl from-blue-400 to-purple-500 text-white rounded-lg p-10 ring-white ring-2 justify-self-center content-center shadow-lg shadow-blue-400">
           
-          {!data && !start?  <p className='text-2xl text-center font-bold mb-4'>Generate A Quiz Above</p> : !start ? <button className='block text-2xl justify-self-center text-center font-bold p-4 hover:bg-blue-300 ring-1 ring-white rounded-md p-2 m-4 shadow-lg shadow-blue-400 capitalize' onClick={getQuizQuestion}>Start {text} quiz</button> : ''}
+          {!data && !start?  <p className='text-3xl text-center font-medium mb-4'>Generate A Quiz Above</p> : !start ? <button className='block text-2xl justify-self-center text-center font-medium p-4 hover:bg-blue-300 ring-1 ring-white rounded-md p-2 m-4 shadow-lg shadow-blue-400 capitalize' onClick={getQuizQuestion}>Start {text} quiz</button> : ''}
           {start && qi < 6? <>
-          <p className='absolute -translate-x-8 -translate-y-12 p-4 text-xl font-bold'>Score: {score} <span className={`${scoreAlert.color} duration-300 font-extrabold ease-in-out`}>{scoreAlert.name}</span></p>
-          <h2 className='text-3xl text-center font-extrabold underline mb-4 text-shadow-lg text-shadow-sky-300 capitalize'>{text} Quiz</h2>
+          <p className='absolute -translate-x-8 -translate-y-12 p-4 text-xl font-medium'>Score: {score} <span className={`${scoreAlert.color} duration-300 font-medium ease-in-out`}>{scoreAlert.name}</span></p>
+          <h2 className='text-3xl text-center font-bold underline mb-4 text-shadow-lg text-shadow-sky-300 capitalize'>{text} Quiz</h2>
           
           <div className='justify-items-center self-center w-full h-full'>
-            <h2 className='md:text-2xl text-center font-bold mb-4 mt-4'>{currentQ.question}</h2>
+            <h2 className='md:text-2xl text-center font-medium mb-4 mt-4'>{currentQ.question}</h2>
             <button className='block ring-1 ring-white rounded-md p-2 m-4 shadow-lg shadow-blue-400 hover:bg-blue-300' value={currentQ.answer1} onClick={checkAnswer}>{currentQ.answer1}</button>
             <button className='block ring-1 ring-white rounded-md p-2 m-4 shadow-lg shadow-blue-400 hover:bg-blue-300' value={currentQ.answer2} onClick={checkAnswer}>{currentQ.answer2}</button>
             <button className='block ring-1 ring-white rounded-md p-2 m-4 shadow-lg shadow-blue-400 hover:bg-blue-300' value={currentQ.answer3} onClick={checkAnswer}>{currentQ.answer3}</button>
@@ -165,4 +161,4 @@ const client = useQueryClient()
   )
 }
 
-export default Quiz
+export default GeminiQuiz

@@ -1,20 +1,65 @@
-import Quiz from "./Gemini"
+import GeminiQuiz from "./Gemini"
+import BlurText from "./bits/BlurText";
+
+
 
 const Home = () => {
    return (
-    <div className="w-screen max-w-screen-xl  dark:bg-zinc-900 bg-zinc-300 min-h-screen justify-self-center font-sans p-10 drop-shadow-xl/50">
-      <h2 className="pb-7 text-2xl font-bold">Welcome</h2>
-      <p>Welcome to my new homepage. Now powered by ⚛️React and styled with ༄Tailwind</p>
-      <br/>
-      <p>
-        Check out my latest blog:
-        <a className= 'p-4 hover:text-green-500 underline' href="/blog/foundations-reflection.html"
-          >Blog 9: Foundations Reflection</a>
-      </p>
-      <br/>
-      <div className= 'justify-items-center m-10'>
-        <Quiz/>
+    <div className="w-screen max-w-screen-xl min-h-screen justify-self-center p-10 drop-shadow-xl/50">
+      <BlurText
+        text="Callum Begley .com"
+        delay={100}
+        animateBy="letters"
+        direction="bottom"
+        className="md:text-9xl text-5xl font-medium mb-56 mt-56"
+      />
+      <p className="text-4xl font-medium mb-48">Welcome to my new homepage. <em className="animate-ping ease-in-out text-lime-400">Scroll ↓</em></p>
+      <BlurText
+        text="Welcome to my new homepage. Scroll ↓"
+        delay={150}
+        animateBy="words"
+        direction="top"
+        className="text-4xl font-medium mb-48"
+      />
+      <BlurText
+        text="Now powered by ⚛️React and styled with ༄Tailwind"
+        delay={100}
+        animateBy="words"
+        direction="top"
+        className="text-4xl font-medium mb-48"
+      />
+      <BlurText
+        text="Try out my AI Quiz Generator below"
+        delay={100}
+        animateBy="words"
+        direction="top"
+        className="text-4xl font-medium mb-8"
+      />
+      <BlurText
+        text="It generates a 5 question quiz on any topic you choose, at different difficulty levels"
+        delay={50}
+        animateBy="words"
+        direction="top"
+        className="text-4xl font-medium mb-8"
+      />
+      <BlurText
+        text="Powered by Google Gemini API"
+        delay={100}
+        animateBy="words"
+        direction="top"
+        className="text-4xl font-medium mb-48"
+      />
+
+      <div className= 'justify-items-center m-10 mb-48'>
+        <GeminiQuiz/>
       </div>
+      <BlurText
+        text="More personal projects:"
+        delay={100}
+        animateBy="words"
+        direction="top"
+        className="text-5xl font-medium mb-48"
+      />
     </div>
   )
 }

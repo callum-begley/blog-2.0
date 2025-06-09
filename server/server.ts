@@ -4,7 +4,6 @@ import express from 'express'
 import cors, { CorsOptions } from 'cors'
 import { GoogleGenAI } from '@google/genai'
 import { Data, Quiz } from '../client/components/interface'
-//import { Joke } from '../client/types/joke'
 
 const genAI = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY })
 const server = express()
