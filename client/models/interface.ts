@@ -3,8 +3,8 @@ export interface Data {
 }
 
 export interface Question {
-    question:      string;
-    answers:       string[];
+    question: string;
+    answers: string[];
     correct_answer: string;
 }
 
@@ -13,11 +13,11 @@ export interface QuizType {
 }
 
 export interface Quiz {
-    candidates:    Candidate[];
+    candidates: Candidate[];
 }
 
 export interface Candidate {
-    content:      Content;
+    content: Content;
 }
 
 export interface Content {

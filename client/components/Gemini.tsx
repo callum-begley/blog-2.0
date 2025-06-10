@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { getQuiz } from '../apiClient'
-import { Data, Question } from './interface'
+import { Data, Question } from '../models/interface'
 
 const GeminiQuiz = () => {
   const [text, setText] = useState('Enter topic')
@@ -23,12 +23,14 @@ const client = useQueryClient()
   const { data, isError, isFetching, refetch, isFetched } = useQuery({
     queryKey: ['quiz'],
     queryFn: async () => {
-      const data = await getQuiz(text, diff)
-      return data as Data | unknown
+      const data: Data = await getQuiz(text, diff)
+      return data
     },
     enabled: false,
   })
   if (isError) console.log('error loading')
+
+    console.log(typeof data, data)
 
   const handleChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
     setText(event.target.value)
@@ -46,7 +48,7 @@ const client = useQueryClient()
 
   const getQuizQuestion = () => {
     setStart(true)
-    const current: Question = data.questions[qi]
+    const current = data.questions[qi]
     setQi((x) => x + 1)
     setCorrect(current.correct_answer)
     showQuiz(current)
