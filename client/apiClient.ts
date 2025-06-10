@@ -1,5 +1,5 @@
 import request from 'superagent'
-import { Data } from './models/interface'
+import { Data } from './models/types'
 
 const rootURL = new URL('/api/v1', document.baseURI)
 

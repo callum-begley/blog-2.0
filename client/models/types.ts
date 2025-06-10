@@ -25,5 +25,5 @@ export interface Content {
 }
 
 export interface Part {
-    text: string;
+    text: string
 }

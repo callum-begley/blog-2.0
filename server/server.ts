@@ -3,7 +3,7 @@ import * as Path from 'node:path'
 import express from 'express'
 import cors, { CorsOptions } from 'cors'
 import { GoogleGenAI } from '@google/genai'
-import { Data, Quiz } from '../client/models/interface'
+import { Data, Quiz } from '../client/models/types'
 
 const genAI = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY })
 const server = express()
@@ -23,9 +23,9 @@ server.get('/api/v1/quiz', async (req, res) => {
       contents: prompt,
     })
 
-    const formatted = result.candidates[0].content.parts[0].text?.replaceAll('```json', '').replaceAll('```', '').replaceAll('\n', '')
+    const formatted = result.candidates[0].content.parts[0].text.replaceAll('```json', '').replaceAll('```', '').replaceAll('\n', '')
 
-    const quiz = JSON.parse(formatted)
+    const quiz: Data = JSON.parse(formatted)
 
     res.json({ quiz: quiz })
   } catch (error) {

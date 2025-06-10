@@ -1,7 +1,7 @@
-import { useState } from 'react'
+import React, { useState } from 'react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { getQuiz } from '../apiClient'
-import { Data, Question } from '../models/interface'
+import { Data, Question } from '../models/types'
 
 const GeminiQuiz = () => {
   const [text, setText] = useState('Enter topic')
@@ -46,6 +46,7 @@ const client = useQueryClient()
   }
 
   const getQuizQuestion = () => {
+    if (!data || !data.questions) return
     setStart(true)
     const current = data.questions[qi]
     setQi((x) => x + 1)
@@ -87,11 +88,11 @@ const client = useQueryClient()
     }
   }
 
-   const checkAnswer = (event) => {
+   const checkAnswer = (event: React.MouseEvent<HTMLButtonElement>) => {
     const newAnswers = [...answers]
-    newAnswers[(qi - 1)] = event.target.value
+    newAnswers[(qi - 1)] = event.currentTarget.value
     setAnswers(newAnswers)
-    if (event.target.value === correct){
+    if (event.currentTarget.value === correct){
       setScoreAlert({ name: 'Correct!', color: 'text-green-600' })
       setScore((x) => x + 1)
     }else {setScoreAlert({ name: 'Incorrect :(', color: 'text-red-600' })}
@@ -145,7 +146,7 @@ const client = useQueryClient()
 
         <div id='quizBox' className="bg-gradient-to-bl from-blue-400 to-purple-500 text-white rounded-lg p-10 ring-white ring-2 justify-self-center content-center shadow-lg shadow-blue-400">
           
-          {!data && !start?  <p className='text-3xl text-center font-medium mb-4'>Generate A Quiz Above</p> : !start ? <button className='block text-2xl justify-self-center text-center font-medium p-4 hover:bg-blue-300 ring-1 ring-white rounded-md p-2 m-4 shadow-lg shadow-blue-400 capitalize' onClick={getQuizQuestion}>Start {text} quiz</button> : ''}
+          {!data && !start?  <p className='text-3xl text-center font-medium mb-4'>Generate A Quiz Above</p> : !start ? <button className='block text-2xl justify-self-center text-center font-medium hover:bg-blue-300 ring-1 ring-white rounded-md p-2 m-4 shadow-lg shadow-blue-400 capitalize' onClick={getQuizQuestion}>Start {text} quiz</button> : ''}
           {start && qi < 6? <>
           <p className='absolute -translate-x-8 -translate-y-12 p-4 text-xl font-medium'>Score: {score} <span className={`${scoreAlert.color} duration-300 font-medium ease-in-out`}>{scoreAlert.name}</span></p>
           <h2 className='text-3xl text-center font-bold underline mb-4 text-shadow-lg text-shadow-sky-300 capitalize'>{text} Quiz</h2>
