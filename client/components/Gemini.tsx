@@ -107,7 +107,7 @@ const client = useQueryClient()
   }
 
   return (
-    <div className="bg-zinc-700 bg-opacity-70 dark:text-white text-black rounded-2xl md:max-w-2xl md:p-10 p-4 ring-white md:ring-2 justify-items-center">
+    <div className="bg-zinc-700 bg-opacity-40 backdrop-blur-sm dark:text-white text-black rounded-2xl md:max-w-2xl md:p-10 p-4 ring-white md:ring-2 justify-items-center">
       <h2 className='text-5xl text-center font-medium mb-8'>AI Quiz Generator</h2>
       <div className='justify-items-center content-center '>
         <div id="input" className='justify-center items-center flex'>

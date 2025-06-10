@@ -244,7 +244,7 @@ const FallingText: React.FC<FallingTextProps> = ({
           lineHeight:'0.8em',
         }}
       />
-      {effectStarted ? <button className='absolute top-1/4 right-10 text-sm ring-1 ring-white p-1 font-medium' onClick={() => handleRefresh()}>Reset</button> : <p className='absolute top-1/4 right-24 text-xs p-1 font-medium' >← click my name</p>}
+      {effectStarted ? <button className='absolute top-1/4 right-6 text-xs ring-1 ring-white p-0.5 font-medium select-none' onClick={() => handleRefresh()}>Reset</button> : <p className='absolute top-1/4 right-6 text-xs p-1 font-medium select-none' >← click my name</p>}
 
       <div className="absolute top-0 left-0 z-40 justify-self-center" ref={canvasContainerRef} />
         
