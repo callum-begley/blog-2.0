@@ -6,7 +6,7 @@ function Nav() {
   const [open, setOpen] = useState(false)
 
   return (
-    <div className= 'text-white fixed top-10 p-4'>
+    <div className= 'text-white fixed top-10 p-4 w-12 h-12'>
       <div className="text-xl bg-zinc-600 rounded-full hover:bg-zinc-400 h-12 w-12 z-50 transition duration-500 ease-in-out hover:scale-110">
       <Hamburger size={24} toggled={open} toggle={setOpen} />
       </div>

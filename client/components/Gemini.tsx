@@ -30,9 +30,8 @@ const client = useQueryClient()
   })
   if (isError) console.log('error loading')
 
-    console.log(typeof data, data)
-
-  const handleChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
+  const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    console.log("handleChange triggered! Current input value:", event.target.value)
     setText(event.target.value)
   }
 
@@ -75,7 +74,7 @@ const client = useQueryClient()
         <>
         <p className='absolute -translate-x-8 -translate-y-12 p-4 text-xl font-medium'>Final Score: {score}/5</p>
         <h2 className='md:text-2xl text-center font-medium mb-4 mt-4'>Answers:</h2>
-        {data.questions.map((x,i) => {
+        {data?.questions.map((x,i) => {
           if (answers[i] == x.correct_answer){
           return(<p key={x.correct_answer} className='text-black font-medium stroke-black bg-white m-2 p-2 rounded-md'>✔️ {i + 1} - {x.correct_answer}</p>)
           } else{
@@ -88,7 +87,7 @@ const client = useQueryClient()
     }
   }
 
-   const checkAnswer = (event: React.ChangeEvent<HTMLSelectElement>) => {
+   const checkAnswer = (event) => {
     const newAnswers = [...answers]
     newAnswers[(qi - 1)] = event.target.value
     setAnswers(newAnswers)
@@ -112,7 +111,7 @@ const client = useQueryClient()
     <div className="bg-zinc-700 bg-opacity-40 backdrop-blur-sm dark:text-white text-black rounded-2xl md:max-w-2xl md:p-10 p-4 ring-white md:ring-2 justify-items-center">
       <h2 className='text-5xl text-center font-medium mb-8'>AI Quiz Generator</h2>
       <div className='justify-items-center content-center '>
-        <div id="input" className='justify-center items-center flex'>
+        <form id="input" className='justify-center items-center flex'>
           <label className='text-xl'>Topic: 
           <input
             onChange={handleChange}
@@ -130,7 +129,7 @@ const client = useQueryClient()
               <option value="Hard">Hard</option>
             </select>
           </label>
-        </div>
+        </form>
 
         <div className="m-4 place-items-center">
           <button className="bg-gradient-to-bl from-purple-500 to-blue-400 font-medium text-2xl rounded-full p-4 ring-white ring-2 shadow-2xl shadow-blue-400 flex m-10"
