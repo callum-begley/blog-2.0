@@ -1,10 +1,14 @@
-import 'dotenv/config'
+// import 'dotenv/config'
 import * as Path from 'node:path'
 import express from 'express'
 import cors, { CorsOptions } from 'cors'
 import { GoogleGenAI } from '@google/genai'
 import { Data, Quiz } from '../client/models/types'
 
+if (process.env.NODE_ENV !== 'production'){
+  const dotenv = await  import('dotenv')
+  dotenv.config()
+}
 const genAI = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY })
 const server = express()
 
