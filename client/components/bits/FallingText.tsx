@@ -21,7 +21,6 @@ const FallingText: React.FC<FallingTextProps> = ({
   wireframes = false,
   gravity = 0.1,
   mouseConstraintStiffness = 0.2,
-  // fontSize = "1rem",
 }) => {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const textRef = useRef<HTMLDivElement | null>(null);
@@ -84,7 +83,7 @@ const FallingText: React.FC<FallingTextProps> = ({
 
     const containerRect = containerRef.current.getBoundingClientRect();
     const width = containerRect.width *0.8;
-    const height = containerRect.height * 0.65;
+    const height = containerRect.height * 1;
 
     if (width <= 0 || height <= 0) return;
 
@@ -145,9 +144,9 @@ const FallingText: React.FC<FallingTextProps> = ({
 
       const body = Bodies.rectangle(x, y, rect.width, rect.height, {
         render: { fillStyle: "transparent" },
-        restitution: 0.8,
-        frictionAir: 0.01,
-        friction: 0.2,
+        restitution: 0.9,
+        frictionAir: 0.0,
+        friction: 0.1,
       });
       Matter.Body.setVelocity(body, {
         x: (Math.random() - 0.5) * 5,
@@ -232,22 +231,20 @@ const FallingText: React.FC<FallingTextProps> = ({
     // eslint-disable-next-line jsx-a11y/click-events-have-key-events
     <div
       ref={containerRef}
-      className="relative z-40 w-full h-full justify-content-center cursor-pointer text-center pt-8 overflow-hidden"
+      id='headerCenter'
+      className="z-40 w-full lg:h-full h-40 cursor-pointer font-bold lg:text-7xl md:text-5xl sm:text-3xl text-3xl justify-self-center"
       onClick={trigger === "click" ? handleTrigger : undefined}
       onMouseEnter={trigger === "hover" ? handleTrigger : undefined}
     >
       <div
         ref={textRef}
-        className="inline-block"
+        className='absolute inline-block items-center sm:w-full h-40'
         style={{
-          // fontSize,
           lineHeight:'0.8em',
         }}
       />
-      {effectStarted ? <button className='absolute top-1/4 right-6 text-xs ring-1 ring-white p-0.5 font-medium select-none' onClick={() => handleRefresh()}>Reset</button> : <p className='absolute top-1/4 right-6 text-xs p-1 font-medium select-none' >← click my name</p>}
-
-      <div className="absolute top-0 left-0 z-40 justify-self-center" ref={canvasContainerRef} />
-        
+      {effectStarted ? <button className='relative sm:visible invisible top-1/4 sm:right-6 right-2 text-xs ring-1 ring-white p-0.5 font-medium select-none ' onClick={() => handleRefresh()}>Reset</button> : <p className='absolute sm:top-1/4 top-20 sm:right-6 hidden sm:block translate-x-6 text-xs p-1 font-medium select-none' >← click my name</p>}
+      <div className="overflow-hidden h-full" ref={canvasContainerRef} />
     </div>
     
   );

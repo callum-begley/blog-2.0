@@ -13,7 +13,7 @@ function App() {
   }
 
   return (
-    <main className={`${darkMode ? 'dark' : 'light'}`}>
+    <main className={`${darkMode ? ' dark ' : ' light '} overflow-hidden `}>
        <div className='z-0'>
           <Particles
             particleColors={darkMode ? ['#ffffff', '#ffffff'] : ['#32CD32', '#32CD32']} 
