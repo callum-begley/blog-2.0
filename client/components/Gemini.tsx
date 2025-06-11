@@ -144,7 +144,7 @@ const client = useQueryClient()
           </button>
         </div>
 
-        <div id='quizBox' className="bg-gradient-to-bl from-blue-400 to-purple-500 text-white rounded-lg p-10 ring-white ring-2 justify-self-center content-center shadow-lg shadow-blue-400">
+        <div id='quizBox' className="bg-gradient-to-bl from-blue-400 to-purple-500 text-white rounded-lg p-10 ring-white ring-2 justify-self-center content-center shadow-lg shadow-blue-400 select-none">
           
           {!data && !start?  <p className='text-3xl text-center font-medium mb-4'>Generate A Quiz Above</p> : !start ? <button className='block text-2xl justify-self-center text-center font-medium hover:bg-blue-300 ring-1 ring-white rounded-md p-2 m-4 shadow-lg shadow-blue-400 capitalize' onClick={getQuizQuestion}>Start {text} quiz</button> : ''}
           {start && qi < 6? <>

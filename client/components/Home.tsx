@@ -5,15 +5,22 @@ import BlurText from "./bits/BlurText";
 
 const Home = () => {
    return (
-    <div className="w-screen max-w-screen-xl min-h-screen justify-self-center p-10 drop-shadow-xl/50">
+    <div className="w-screen max-w-screen-xl min-h-screen justify-self-center p-10 drop-shadow-xl/50 scroll-smooth transition-transform duration-1000">
       <BlurText
-        text="Callum Begley .com"
+        text="Callum Begley Web Design"
         delay={100}
         animateBy="letters"
         direction="bottom"
-        className="lg:text-8xl md:text-6xl sm:text-5xl text-4xl font-bold mb-56 mt-56"
+        className="lg:text-8xl md:text-6xl sm:text-5xl text-4xl font-bold mb-10 mt-56"
       />
-      <p className="text-4xl font-medium mb-48">Welcome to my new homepage. <em className="animate-ping ease-in-out dark:text-lime-400">Scroll ↓</em></p>
+        <BlurText
+        text="Web Design"
+        delay={200}
+        animateBy="letters"
+        direction="bottom"
+        className="lg:text-8xl md:text-6xl sm:text-5xl text-4xl font-bold mb-56"
+      />
+      <p className="text-4xl font-medium mb-48">Welcome to my new webpage. <em className="animate-ping ease-in-out dark:text-lime-400">Scroll ↓</em></p>
       <BlurText
         text="Now powered by ⚛️React and styled with ༄Tailwind"
         delay={100}
@@ -26,14 +33,14 @@ const Home = () => {
         delay={100}
         animateBy="words"
         direction="top"
-        className="text-4xl font-medium mb-8"
+        className="text-4xl font-medium mb-24"
       />
       <BlurText
         text="It generates a 5 question quiz on any topic you choose, at different difficulty levels"
         delay={50}
         animateBy="words"
         direction="top"
-        className="text-4xl font-medium mb-8"
+        className="text-4xl font-medium mb-24"
       />
       <BlurText
         text="Powered by Google Gemini API"
@@ -53,6 +60,15 @@ const Home = () => {
         direction="top"
         className="text-5xl font-medium mb-48"
       />
+      <div id='contact'>
+        <BlurText
+        text="Contact:"
+        delay={100}
+        animateBy="words"
+        direction="top"
+        className="text-5xl font-medium mb-48"
+      />
+      </div>
     </div>
   )
 }
