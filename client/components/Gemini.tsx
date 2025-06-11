@@ -31,7 +31,6 @@ const client = useQueryClient()
   if (isError) console.log('error loading')
 
   const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    console.log("handleChange triggered! Current input value:", event.target.value)
     setText(event.target.value)
   }
 

@@ -22,7 +22,7 @@ const Home = () => {
       />
       <p className="text-4xl font-medium mb-48">Welcome to my new webpage. <em className="animate-ping ease-in-out dark:text-lime-400">Scroll ↓</em></p>
       <BlurText
-        text="Now powered by ⚛️React and styled with ༄Tailwind"
+        text="Powered by ⚛️React and styled with ༄Tailwind"
         delay={100}
         animateBy="words"
         direction="top"
