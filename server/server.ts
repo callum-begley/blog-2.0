@@ -19,7 +19,8 @@ server.get('/api/v1/quiz', async (req, res) => {
     const topic = req.query.topic
     const difficulty = req.query.difficulty
 
-    const prompt = `create a 5 question quiz about ${topic ? topic : 'anything'} with a difficulty of ${difficulty ? difficulty : 'any'},` //respond with no intro and no line breaks (/n), just a JSON (key questions) with 5 questions in an array (key question), 3 possible answers for each in another array (key answers), and the correct answers in an array (key correct_answer)`
+    const prompt = `create a 5 question quiz about ${topic ? topic : 'anything'} with a difficulty of ${difficulty ? difficulty : 'any'},`
+    //respond with no intro and no line breaks (/n), just a JSON (key questions) with 5 questions in an array (key question), 3 possible answers for each in another array (key answers), and the correct answers in an array (key correct_answer)`
 
     const result: GenerateContentResponse  = await genAI.models.generateContent({
       model: 'gemini-2.0-flash-exp',

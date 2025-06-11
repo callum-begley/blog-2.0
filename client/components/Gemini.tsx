@@ -76,12 +76,12 @@ const client = useQueryClient()
         <h2 className='md:text-2xl text-center font-medium mb-4 mt-4'>Answers:</h2>
         {data?.questions.map((x,i) => {
           if (answers[i] == x.correct_answer){
-          return(<p key={x.correct_answer} className='text-black font-medium stroke-black bg-white m-2 p-2 rounded-md'>✔️ {i + 1} - {x.correct_answer}</p>)
+          return(<p key={x.correct_answer} className='text-black font-medium bg-white m-2 p-2 rounded-md'>✔️ {i + 1} - {x.correct_answer}</p>)
           } else{
-            return(<p key={x.correct_answer} className='text-red-600 font-medium stroke-black bg-white m-2 p-2 rounded-md'>❌ {i + 1} - {x.correct_answer}</p>)
+            return(<p key={x.correct_answer} className='text-red-600 font-medium bg-white m-2 p-2 rounded-md'>❌ {i + 1} - {x.correct_answer}</p>)
           }
         })}
-        <button className='block justify-self-center text-center text-2xl font-medium p-2 hover:bg-blue-300 ring-1 ring-white rounded-md m-4 shadow-lg shadow-blue-400' onClick={() => {setStart(false); setQi(0); setScore(0); setAnswers(new Array(5)); client.removeQueries({ queryKey: ['quiz'] })}}>End Quiz</button>
+        <button className='block justify-self-center text-center text-2xl font-medium p-2 hover:scale-105 ring-1 ring-white rounded-md m-4' onClick={() => {setStart(false); setQi(0); setScore(0); setAnswers(new Array(5)); client.removeQueries({ queryKey: ['quiz'] })}}>End Quiz</button>
         </>
       )
     }
@@ -92,7 +92,7 @@ const client = useQueryClient()
     newAnswers[(qi - 1)] = event.currentTarget.value
     setAnswers(newAnswers)
     if (event.currentTarget.value === correct){
-      setScoreAlert({ name: 'Correct!', color: 'text-green-600' })
+      setScoreAlert({ name: 'Correct!', color: 'text-white' })
       setScore((x) => x + 1)
     }else {setScoreAlert({ name: 'Incorrect :(', color: 'text-red-600' })}
     
@@ -108,8 +108,8 @@ const client = useQueryClient()
   }
 
   return (
-    <div className="bg-zinc-700 bg-opacity-40 backdrop-blur-sm dark:text-white text-black rounded-2xl md:max-w-2xl md:p-10 p-4 ring-white md:ring-2 justify-items-center">
-      <h2 className='text-5xl text-center font-medium mb-8'>AI Quiz Generator</h2>
+    <div className="bg-zinc-700 bg-opacity-40 backdrop-blur-sm rounded-2xl md:max-w-2xl md:p-10 p-4 ring-white md:ring-2 justify-items-center">
+      <h2 className='text-5xl text-center font-medium mb-8 textShadow'>AI Quiz Generator</h2>
       <div className='justify-items-center content-center '>
         <form id="input" className='justify-center items-center flex'>
           <label className='text-xl'>Topic: 
@@ -119,11 +119,11 @@ const client = useQueryClient()
             type="text"
             name='input'
             onFocus={() => setText('')}
-            className='text-black ring-blue-400 ring-2 rounded-md p-2 m-2 shadow-lg shadow-blue-400 dark:bg-zinc-600 dark:text-white'
+            className='text-black ring-lime-400 ring-2 rounded-md p-2 m-2 shadow-[0px_5px_10px_rgba(137,243,54,0.6)] dark:bg-zinc-600 bg-white dark:text-white'
             disabled={start}
           /></label>
           <label className='text-xl'>Difficulty:
-            <select name="difficulty" className='text-black ring-blue-400 ring-2 rounded-md p-2 m-2 shadow-lg shadow-blue-400 dark:bg-zinc-600 dark:text-white' onChange={handleSelect} value={diff} disabled={start}>
+            <select name="difficulty" className='text-black ring-lime-400 ring-2 rounded-md p-2 m-2 shadow-[0px_5px_10px_rgba(137,243,54,0.6)] dark:bg-zinc-600 dark:text-white' onChange={handleSelect} value={diff} disabled={start}>
               <option value="Easy">Easy</option>
               <option value="Medium">Medium</option>
               <option value="Hard">Hard</option>
@@ -132,7 +132,8 @@ const client = useQueryClient()
         </form>
 
         <div className="m-4 place-items-center">
-          <button className="bg-gradient-to-bl from-purple-500 to-blue-400 font-medium text-2xl rounded-full p-4 ring-white ring-2 shadow-2xl shadow-blue-400 flex m-10"
+          <button className={`bg-gradient-to-bl from-lime-400 to-green-600 font-medium text-2xl rounded-full p-4 ring-white ring-2 shadow-[0px_5px_10px_rgba(137,243,54,0.6)] flex m-10
+                              ${start ? 'ring-slate-700' : ''}`}
             onClick={handleSubmit}
             disabled={
               isFetching ||
@@ -143,18 +144,18 @@ const client = useQueryClient()
           </button>
         </div>
 
-        <div id='quizBox' className="bg-gradient-to-bl from-blue-400 to-purple-500 text-white rounded-lg p-10 ring-white ring-2 justify-self-center content-center shadow-lg shadow-blue-400 select-none">
+        <div id='quizBox' className="bg-gradient-to-bl from-lime-500 to-green-600 text-white rounded-lg p-10 ring-white ring-2 justify-self-center content-center shadow-[0px_5px_10px_rgba(137,243,54,0.6)] select-none">
           
-          {!data && !start?  <p className='text-3xl text-center font-medium mb-4'>Generate A Quiz Above</p> : !start ? <button className='block text-2xl justify-self-center text-center font-medium hover:bg-blue-300 ring-1 ring-white rounded-md p-2 m-4 shadow-lg shadow-blue-400 capitalize' onClick={getQuizQuestion}>Start {text} quiz</button> : ''}
+          {!data && !start?  <p className='text-3xl text-center font-medium mb-4'>Generate A Quiz Above</p> : !start ? <button className='block text-2xl justify-self-center text-center font-medium hover:bg-blue-300 ring-1 ring-white rounded-md p-2 m-4 shadow-[0px_5px_10px_rgba(137,243,54,0.6)] capitalize' onClick={getQuizQuestion}>Start {text} quiz</button> : ''}
           {start && qi < 6? <>
           <p className='absolute -translate-x-8 -translate-y-12 p-4 text-xl font-medium'>Score: {score} <span className={`${scoreAlert.color} duration-300 font-medium ease-in-out`}>{scoreAlert.name}</span></p>
           <h2 className='text-3xl text-center font-bold underline mb-4 text-shadow-lg text-shadow-sky-300 capitalize'>{text} Quiz</h2>
           
           <div className='justify-items-center self-center w-full h-full'>
             <h2 className='md:text-2xl text-center font-medium mb-4 mt-4'>{currentQ.question}</h2>
-            <button className='block ring-1 ring-white rounded-md p-2 m-4 shadow-lg shadow-blue-400 hover:bg-blue-300' value={currentQ.answer1} onClick={checkAnswer}>{currentQ.answer1}</button>
-            <button className='block ring-1 ring-white rounded-md p-2 m-4 shadow-lg shadow-blue-400 hover:bg-blue-300' value={currentQ.answer2} onClick={checkAnswer}>{currentQ.answer2}</button>
-            <button className='block ring-1 ring-white rounded-md p-2 m-4 shadow-lg shadow-blue-400 hover:bg-blue-300' value={currentQ.answer3} onClick={checkAnswer}>{currentQ.answer3}</button>
+            <button className='block ring-1 ring-white rounded-md p-2 m-4 shadow-[0px_5px_10px_rgba(137,243,54,0.6)] hover:bg-blue-300' value={currentQ.answer1} onClick={checkAnswer}>{currentQ.answer1}</button>
+            <button className='block ring-1 ring-white rounded-md p-2 m-4 shadow-[0px_5px_10px_rgba(137,243,54,0.6)] hover:bg-blue-300' value={currentQ.answer2} onClick={checkAnswer}>{currentQ.answer2}</button>
+            <button className='block ring-1 ring-white rounded-md p-2 m-4 shadow-[0px_5px_10px_rgba(137,243,54,0.6)] hover:bg-blue-300' value={currentQ.answer3} onClick={checkAnswer}>{currentQ.answer3}</button>
           </div></> : endGame() }
         </div>
       </div>

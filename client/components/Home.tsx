@@ -1,3 +1,4 @@
+import GameCards from "./GameCards";
 import GeminiQuiz from "./Gemini"
 import BlurText from "./bits/BlurText";
 
@@ -11,15 +12,9 @@ const Home = () => {
         delay={100}
         animateBy="letters"
         direction="bottom"
-        className="lg:text-8xl md:text-6xl sm:text-5xl text-4xl font-bold mb-10 mt-56"
+        className="lg:text-8xl md:text-6xl sm:text-5xl text-4xl font-bold mt-72 mb-72"
       />
-        <BlurText
-        text="Web Design"
-        delay={200}
-        animateBy="letters"
-        direction="bottom"
-        className="lg:text-8xl md:text-6xl sm:text-5xl text-4xl font-bold mb-56"
-      />
+
       <p className="text-4xl font-medium mb-48">Welcome to my new webpage. <em className="animate-ping ease-in-out dark:text-lime-400">Scroll ↓</em></p>
       <BlurText
         text="Powered by ⚛️React and styled with ༄Tailwind"
@@ -58,15 +53,16 @@ const Home = () => {
         delay={100}
         animateBy="words"
         direction="top"
-        className="text-5xl font-medium mb-48"
+        className="text-5xl font-medium mb-10"
       />
+      <GameCards />
       <div id='contact'>
         <BlurText
         text="Contact:"
         delay={100}
         animateBy="words"
         direction="top"
-        className="text-5xl font-medium mb-48"
+        className="text-5xl font-medium mb-48 mt-48 "
       />
       </div>
     </div>
