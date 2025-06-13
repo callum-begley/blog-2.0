@@ -41,6 +41,7 @@
     "matter-js": "^0.20.0",
     "ogl": "^1.0.11",
     "pg": "^8.16.0",
+    "react-router-dom": "^7.6.2",
     "superagent": "^10.2.1",
     "tailwind": "^4.0.0"
   },

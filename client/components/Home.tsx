@@ -12,9 +12,8 @@ const Home = () => {
         delay={100}
         animateBy="letters"
         direction="bottom"
-        className="lg:text-8xl md:text-6xl sm:text-5xl text-4xl font-bold mt-72 mb-72"
+        className="lg:text-8xl md:text-6xl sm:text-5xl text-5xl font-bold mt-72 mb-72"
       />
-
       <p className="text-4xl font-medium mb-48">Welcome to my new webpage. <em className="animate-ping ease-in-out dark:text-lime-400">Scroll ↓</em></p>
       <BlurText
         text="Powered by ⚛️React and styled with ༄Tailwind"

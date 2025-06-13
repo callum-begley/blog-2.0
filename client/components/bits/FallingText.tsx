@@ -126,13 +126,13 @@ const FallingText: React.FC<FallingTextProps> = ({
       height,
       boundaryOptions
     );
-    const ceiling = Bodies.rectangle(
-      width / 2,
-      -25,
-      width,
-      50,
-      boundaryOptions
-    );
+    // const ceiling = Bodies.rectangle(
+    //   width / 2,
+    //   -100,
+    //   width,
+    //   50,
+    //   boundaryOptions
+    // );
 
     if (!textRef.current) return;
     const wordSpans = textRef.current.querySelectorAll("span");
@@ -142,11 +142,11 @@ const FallingText: React.FC<FallingTextProps> = ({
       const x = rect.left - containerRect.left + rect.width / 2;
       const y = rect.top - containerRect.top + rect.height / 2;
 
-      const body = Bodies.rectangle(x, y, rect.width, rect.height, {
+      const body = Bodies.circle(x, y, rect.width/2, {
         render: { fillStyle: "transparent" },
-        restitution: 0.9,
+        restitution: 0.8,
         frictionAir: 0.0,
-        friction: 0.1,
+        friction: 0.01,
       });
       Matter.Body.setVelocity(body, {
         x: (Math.random() - 0.5) * 5,
@@ -182,10 +182,34 @@ const FallingText: React.FC<FallingTextProps> = ({
       floor,
       leftWall,
       rightWall,
-      ceiling,
+      //ceiling,
       mouseConstraint,
       ...wordBodies.map((wb) => wb.body),
     ]);
+
+    //movement
+    document.addEventListener("keydown", function (event) {
+            const keyCode = event.key
+            const speed = 10; // set the speed of movement
+            const currentV = Matter.Body.getVelocity(wordBodies[0].body)
+    
+            // move the body based on the key pressed
+            if (keyCode === 'a') {
+              // move left
+              Matter.Body.setVelocity(wordBodies[0].body, { x: -5, y: currentV.y })
+            } else if (keyCode === 'w') {
+              // move up
+              Matter.Body.setVelocity(wordBodies[0].body, { x: currentV.x , y: -5 })
+            } else if (keyCode === 'd') {
+              // move right
+              Matter.Body.setVelocity(wordBodies[0].body, { x: 5, y: currentV.y })
+            } else if (keyCode === 's') {
+              // move down
+              Matter.Body.translate(wordBodies[0].body, { x: currentV.x, y: 5 });
+            }
+          });
+
+    //
 
     const runner = Runner.create();
     Runner.run(runner, engine);
@@ -232,18 +256,18 @@ const FallingText: React.FC<FallingTextProps> = ({
     <div
       ref={containerRef}
       id='headerCenter'
-      className="z-40 w-full lg:h-full h-40 cursor-pointer font-bold lg:text-7xl md:text-5xl sm:text-3xl text-3xl justify-self-center"
+      className="z-40 w-full lg:h-full h-40 cursor-pointer font-bold lg:text-7xl md:text-5xl sm:text-3xl text-3xl ml-64"
       onClick={trigger === "click" ? handleTrigger : undefined}
       onMouseEnter={trigger === "hover" ? handleTrigger : undefined}
     >
       <div
         ref={textRef}
-        className='absolute inline-block items-center sm:w-full h-40'
+        className='absolute inline-block items-center sm:w-max h-40'
         style={{
           lineHeight:'0.8em',
         }}
       />
-      {effectStarted ? <button className='relative sm:visible invisible top-1/4 sm:right-6 right-2 text-xs ring-1 ring-white p-0.5 font-medium select-none ' onClick={() => handleRefresh()}>Reset</button> : <p className='absolute sm:top-1/4 top-20 sm:right-6 hidden sm:block translate-x-6 text-xs p-1 font-medium select-none' >← click my name</p>}
+      {effectStarted ? <button className='absolute sm:visible invisible top-3/4 sm:right-20 right-2 text-xs ring-1 ring-white p-0.5 font-medium select-none ' onClick={() => handleRefresh()}>Reset <p className='absolute top-10 sm:right-6 hidden sm:block -translate-x-20 -translate-y-20 text-xs p-1 font-medium select-none' >WASD to move the C</p></button> : <p className='absolute sm:top-3/4 top-20 sm:right-6 hidden sm:block translate-x-6 text-xs p-1 font-medium select-none' >← click my name</p>}
       <div className="overflow-hidden h-full" ref={canvasContainerRef} />
     </div>
     

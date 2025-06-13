@@ -1,4 +1,4 @@
-import { Link } from "react-router"
+import { Link } from "react-router-dom"
 import Hamburger from "hamburger-react"
 import { useState } from "react"
 
@@ -16,7 +16,7 @@ function Nav() {
             transition-all duration-500 ease-in-out transform origin-left overflow-hidden
             ${open ? 'scale-x-100 text-opacity-100' : 'scale-x-0 text-opacity-0 pointer-events-none'}
           `}>
-        <Link to='/' className= 'p-10 hover:text-lime-400 hover:bg-zinc-600 rounded-lg z-50 w-full transition-colors duration-300 ease-in grid grid-cols-[50px_1fr]' 
+        <Link to='/#header' className= 'p-10 hover:text-lime-400 hover:bg-zinc-600 rounded-lg z-50 w-full transition-colors duration-300 ease-in grid grid-cols-[50px_1fr]' 
         onClick={() => setOpen(false)}><div className="material-symbols-outlined mr-10 h-12 w-8 text-3xl font-light">home</div><div>Home</div></Link>
         <Link to='/Blog' className= 'p-10 hover:text-lime-400 hover:bg-zinc-700 rounded-lg z-50 w-full transition-colors duration-300 ease-in grid grid-cols-[50px_1fr]' 
         onClick={() => setOpen(false)}><div className="material-symbols-outlined mr-10 h-12 w-8 text-3xl font-light">news</div><div>Blog</div></Link>
