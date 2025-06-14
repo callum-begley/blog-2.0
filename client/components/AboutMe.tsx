@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from "react";
 
 function AboutMe(){
   const canvasRef = useRef<HTMLDivElement | null>(null)
+  const emojis = ['😊','😢','😠','😨','😂','😀','😊','😎','😟']
 
    useEffect(() => {
       // module aliases
@@ -41,11 +42,16 @@ function AboutMe(){
           }
       });
       const boxB = Bodies.rectangle(650, 50, 80, 80);
-      const ground = Bodies.rectangle(400, 630, 810, 60, { isStatic: true });
-      const leftWall = Bodies.rectangle(-30, 300, 60, 810, { isStatic: true });
-      const rightWall = Bodies.rectangle(830, 300, 60, 810, { isStatic: true });
+
+      const ground = Bodies.rectangle(400, 630, 800, 60, { isStatic: true });
+      const leftWall = Bodies.rectangle(-30, -240, 60, 1800, { isStatic: true });
+      const rightWall = Bodies.rectangle(830, -240, 60, 1800, { isStatic: true });
+
       const platform1 = Bodies.rectangle(200, 210, 200, 10, { isStatic: true });
       const platform2 = Bodies.rectangle(600, 410, 200, 10, { isStatic: true });
+      const platform3 = Bodies.rectangle(200, -210, 200, 10, { isStatic: true });
+      const platform4 = Bodies.rectangle(600, 10, 200, 10, { isStatic: true });
+      const platforms = [platform1, platform2, platform3, platform4]
 
       document.addEventListener("keydown", function (event) {
         const keyCode = event.key
@@ -57,18 +63,20 @@ function AboutMe(){
         // move the body based on the key pressed
         if (keyCode === 'a') {
           // move left
-          Matter.Body.setVelocity(ballA, { x: -2.5, y: currentV.y })
+          Matter.Body.setVelocity(ballA, { x: -4, y: currentV.y })
         } else if (keyCode === 'w') {
           // move up
           Matter.Body.setVelocity(ballA, { x: currentV.x , y: -10 })
         } else if (keyCode === 'd') {
           // move right
-          Matter.Body.setVelocity(ballA, { x: 2.5, y: currentV.y })
+          Matter.Body.setVelocity(ballA, { x: 4, y: currentV.y })
         } else if (keyCode === 's') {
           // move down
           Matter.Body.translate(ballA, { x: currentV.x, y: speed });
         }
       });
+      
+      Render.setPixelRatio(render, 10)
 
      
       const mouse = Mouse.create(canvasRef?.current);
@@ -83,13 +91,39 @@ function AboutMe(){
     
     document.body.addEventListener("mousedown", () => {
         const { x, y } = mouse.position
-        const rand = Math.floor(Math.random()* 800)
-        const newBody = Bodies.circle(x, y, 15, {restitution: 0.8})
+        const randX = Math.floor(Math.random()* 800)
+        const randE = Math.floor(Math.random()* emojis.length)
+
+        const newBody = Bodies.circle(x, y, 20, {
+          restitution: 0.8,
+          render: {
+            sprite: {
+              texture: '/cry.png',
+              xScale: 1,
+              yScale: 1
+            }
+          },})
+
         Composite.add(engine.world, newBody)
       })
 
+      
+
+  function track(){
+    Render.lookAt(render, ballA, {
+      x: 200,
+      y: 200
+    });
+  }
+
+  function repeatOften() {
+    track()
+    requestAnimationFrame(repeatOften);
+  }
+  requestAnimationFrame(repeatOften);   
+
       // add all of the bodies to the world
-      Composite.add(engine.world, [ballA, boxB, ground, platform1, platform2, leftWall, rightWall, mouseConstraint]);
+      Composite.add(engine.world, [ballA, boxB, ground, ...platforms.map((p) => p), leftWall, rightWall, mouseConstraint]);
 
       // run the renderer
       Render.run(render);
