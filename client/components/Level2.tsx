@@ -1,11 +1,8 @@
 import Matter, { World } from "matter-js"
 import { useEffect, useRef, useState } from "react";
 
-interface Props {
-  onClick: () => void;
-}
 
-const Level2: React.FC<Props> = ({ onClick }) => {
+function Level2(){
   const canvasRef = useRef<HTMLDivElement | undefined>(undefined)
     const [gameOver, setGameOver] = useState(false)
     const [endGame, setEndGame] = useState(false)
@@ -175,15 +172,12 @@ const Level2: React.FC<Props> = ({ onClick }) => {
   
       }, [gameOver]);
     
-      function resetLevel() {
-        onClick()
-      }
-    
+     
      return (
       <>
         {endGame ? <div className="w-52 min-h-40 bg-gradient-to-tr from-blue-950 to-blue-700 absolute top-1/2 left-1/2 -translate-x-1/2 place-content-center ring-2 ring-slate-200 rounded-3xl">
           <h1 className="font-bold text-2xl text-center p-4">You Won!</h1>
-          <button className="place-self-center block ring-2 ring-slate-200 p-2 rounded-xl m-2 " onClick={() =>{resetLevel; setGameOver(true)}}>Try again?</button>
+          <button className="place-self-center block ring-2 ring-slate-200 p-2 rounded-xl m-2 " onClick={() => setGameOver(true)}>Try again?</button>
           </div>: ''}
         <div ref={canvasRef} className="place-self-center "/>
       
