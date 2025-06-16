@@ -1,9 +1,14 @@
-import Matter, { Mouse, MouseConstraint, World } from "matter-js"
+import Matter, { World } from "matter-js"
 import { useEffect, useRef, useState } from "react";
 
 function AboutMe(){
-  const canvasRef = useRef<HTMLDivElement | null>(null)
-  const [timer, setTimer] = useState(0)
+  const canvasRef = useRef<HTMLDivElement | undefined>(undefined)
+  let timer = 0
+  const [showTime, setShowTime] = useState(0)
+  const [endTime, setEndTime] = useState(0)
+  const [gameOver, setGameOver] = useState(false)
+  const [endGame, setEndGame] = useState(false)
+  let killControls = false
 
    useEffect(() => {
       // module aliases
@@ -51,11 +56,9 @@ function AboutMe(){
       const obstacles = [obstacle, obstacle1, obstacle2, obstacle3]
 
       document.addEventListener("keydown", function (event) {
+        if (killControls) return
         const keyCode = event.key
-        const position = ballA.position
-        const speed = 10; // set the speed of movement
         const currentV = Matter.Body.getVelocity(ballA)
-        const currentS = Matter.Body.getSpeed(ballA)
 
         // move the body based on the key pressed
         if (keyCode === 'a') {
@@ -69,47 +72,21 @@ function AboutMe(){
           Matter.Body.setVelocity(ballA, { x: 10, y: currentV.y })
         } else if (keyCode === 's') {
           // move down
-          Matter.Body.translate(ballA, { x: currentV.x, y: speed });
+          Matter.Body.translate(ballA, { x: currentV.x, y: 10 });
         }
       });
-
-     
-    //   const mouse = Mouse.create(canvasRef?.current);
-    //   const mouseConstraint = MouseConstraint.create(engine, {
-    //   mouse,
-    //   constraint: {
-    //     stiffness: 0.2,
-    //     render: { visible: false },
-    //   },
-    // });
-    // render.mouse = mouse; 
-    
-    // document.body.addEventListener("mousedown", () => {
-    //     const { x, y } = mouse.position
-    //     // const randX = Math.floor(Math.random()* 800)
-
-    //     const newBody = Bodies.circle(x, y, 20, {
-    //       restitution: 0.8,
-    //       render: {
-    //         sprite: {
-    //           texture: '/cry.png',
-    //           xScale: 1,
-    //           yScale: 1
-    //         }
-    //       },})
-
-    //     Composite.add(engine.world, newBody)
-    //   })
 
     // add all of the bodies to the world
     Composite.add(engine.world, [ballA, ground, leftWall, rightWall, ...obstacles.map((o) => o)]);
 
     const interval = setInterval(() => {
+      
       const x = Math.floor(Math.random()* 2000)
       const newBody = Bodies.circle(x, -200, 20, {
           restitution: 0.8,
           label: 'enemy',
           collisionFilter:{category: 0x0001, mask: 0x0001}, 
+          frictionAir: 0.05,
           render: {
             sprite: {
               texture: '/cry.png',
@@ -119,7 +96,69 @@ function AboutMe(){
           },})
 
         Composite.add(engine.world, newBody)
-        setTimer((x) => x + 1)
+      
+      if (timer > 20){
+      const x1 = Math.floor(Math.random()* 2000)
+      const x2 = Math.floor(Math.random()* 2000)
+      const newBody1 = Bodies.circle(x1, -200, 20, {
+          restitution: 0.8,
+          label: 'enemy',
+          collisionFilter:{category: 0x0001, mask: 0x0001},
+          frictionAir: 0.025, 
+          render: {
+            sprite: {
+              texture: '/wink.png',
+              xScale: 1,
+              yScale: 1
+            }
+          },})
+      const newBody2 = Bodies.circle(x2, -200, 20, {
+          restitution: 0.8,
+          label: 'enemy',
+          collisionFilter:{category: 0x0001, mask: 0x0001},
+          frictionAir: 0.025,  
+          render: {
+            sprite: {
+              texture: '/cool.png',
+              xScale: 1,
+              yScale: 1
+            }
+          },})
+
+        Composite.add(engine.world, [newBody1, newBody2])
+      }
+      if (timer > 40){
+      const x3 = Math.floor(Math.random()* 2000)
+      const x4 = Math.floor(Math.random()* 2000)
+      const newBody3 = Bodies.circle(x3, -200, 20, {
+          restitution: 0.8,
+          label: 'enemy',
+          collisionFilter:{category: 0x0001, mask: 0x0001}, 
+          render: {
+            sprite: {
+              texture: '/devil.png',
+              xScale: 1,
+              yScale: 1
+            }
+          },})
+      const newBody4 = Bodies.circle(x4, -200, 20, {
+          restitution: 0.8,
+          label: 'enemy',
+          collisionFilter:{category: 0x0001, mask: 0x0001}, 
+          render: {
+            sprite: {
+              texture: '/poop.png',
+              xScale: 1,
+              yScale: 1
+            }
+          },})
+
+        Composite.add(engine.world, [newBody3, newBody4])
+      }
+
+
+        setShowTime((x) => x + 1)
+        timer++
     }, 1000)
          
     function track() {
@@ -158,8 +197,14 @@ function AboutMe(){
               if ((pair.bodyA.label === 'player' && pair.bodyB.label === 'enemy') ||
                   (pair.bodyA.label === 'enemy' && pair.bodyB.label === 'player')) {
                 // End game logic here
+                if (killControls) return
                 console.log('hit')
-                setTimer(0)
+                setEndTime(timer)
+                scoreUpdate(timer)
+                timer = 0
+                setEndGame(true)
+                clearInterval(interval)
+                killControls = true
               }
             }
           });
@@ -204,6 +249,11 @@ function AboutMe(){
       Runner.run(runner, engine);
       
       return () => {
+        setGameOver(false)
+        setEndGame(false)
+        setShowTime(0)
+        killControls = false
+        timer = 0
         Render.stop(render);
         Runner.stop(runner);
         if (canvasRef.current) {
@@ -215,14 +265,35 @@ function AboutMe(){
       clearInterval(interval)
       };
 
-    }, []);
+    }, [gameOver]);
+
+    
+    const highscore = localStorage.getItem('dodgeHighscore')
+    let bestScore  = Number(highscore) || 0
+
+    function scoreUpdate(time: number) {
+      let currentScore = time
+        if (bestScore < currentScore) {
+          bestScore = currentScore
+          localStorage.setItem('dodgeHighscore', currentScore)
+        }
+        currentScore = 0
+      }
+    
   
 
   
    return (
     <div className="place-self-center pt-40">
-      <p className="absolute bottom-100 bg-zinc-600 translate-x-1 translate-y-1 p-2 rounded-md ring-2 ring-white min-w-24 text-center">Time: {timer}</p>
+      <p className="font-bold text-2xl text-center p-4">High Score: {bestScore}</p>
+      <p className="absolute bottom-100 bg-black p-2 rounded-md ring-2 ring-white min-w-20 pl-2 text-lime-400">Time: <span className="animate-ping delay-100 duration-1000 ease-linear">{showTime}</span></p>
+      {endGame ? <div className="w-52 min-h-40 bg-gradient-to-tr from-blue-950 to-blue-700 absolute top-1/2 left-1/2 -translate-x-1/2 place-content-center ring-2 ring-slate-200 rounded-3xl shadow-blue-950 shadow-lg">
+          <h1 className="font-bold text-2xl text-center p-4">You Got Hit!</h1>
+          <h1 className="font-bold text-xl text-center p-4">Time: {endTime} s</h1>
+          <button className="place-self-center block ring-2 ring-slate-200 p-2 rounded-xl m-2 mb-6" onClick={() => {setGameOver(true)}}>Try again?</button>
+          </div>: ''}
       <div ref={canvasRef} className="place-self-center "/>
+      <p className="font-bold text-2xl text-center p-4">Controls: W A S D</p>
     </div>
   )
 }

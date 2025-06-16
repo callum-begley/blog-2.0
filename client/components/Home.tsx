@@ -1,3 +1,4 @@
+import ContactForm from "./ContactForm";
 import GameCards from "./GameCards";
 import GeminiQuiz from "./Gemini"
 import BlurText from "./bits/BlurText";
@@ -61,8 +62,9 @@ const Home = () => {
         delay={100}
         animateBy="words"
         direction="top"
-        className="text-5xl font-medium mb-48 mt-48 "
+        className="text-5xl font-medium mt-48 "
       />
+      <ContactForm />
       </div>
     </div>
   )

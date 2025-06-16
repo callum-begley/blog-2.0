@@ -190,7 +190,7 @@ const FallingText: React.FC<FallingTextProps> = ({
     //movement
     document.addEventListener("keydown", function (event) {
             const keyCode = event.key
-            const speed = 10; // set the speed of movement
+            //const speed = 10; // set the speed of movement
             const currentV = Matter.Body.getVelocity(wordBodies[0].body)
     
             // move the body based on the key pressed
@@ -256,13 +256,13 @@ const FallingText: React.FC<FallingTextProps> = ({
     <div
       ref={containerRef}
       id='headerCenter'
-      className="z-40 w-full lg:h-full h-40 cursor-pointer font-bold lg:text-7xl md:text-5xl sm:text-3xl text-3xl ml-64"
+      className="z-40 w-full lg:h-full h-40 cursor-pointer font-bold lg:text-7xl md:text-5xl sm:text-3xl text-3xl sm:ml-64 "
       onClick={trigger === "click" ? handleTrigger : undefined}
       onMouseEnter={trigger === "hover" ? handleTrigger : undefined}
     >
       <div
         ref={textRef}
-        className='absolute inline-block items-center sm:w-max h-40'
+        className='absolute inline-block items-center w-max h-40'
         style={{
           lineHeight:'0.8em',
         }}

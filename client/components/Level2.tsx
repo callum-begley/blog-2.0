@@ -1,13 +1,14 @@
 import Matter, { World } from "matter-js"
 import { useEffect, useRef, useState } from "react";
-import Level2 from "./Level2";
 
-function Games(){
+interface Props {
+  onClick: () => void;
+}
+
+const Level2: React.FC<Props> = ({ onClick }) => {
   const canvasRef = useRef<HTMLDivElement | undefined>(undefined)
     const [gameOver, setGameOver] = useState(false)
     const [endGame, setEndGame] = useState(false)
-    const [level, setLevel] = useState(1)
-    
     let killControls = false
     let jump = false
   
@@ -53,21 +54,25 @@ function Games(){
             }
           }
       });
-      const boxB = Bodies.rectangle(600, 50, 80, 80, {friction: 0.01, render: { fillStyle: '#09419c' }});
+      const boxB = Bodies.rectangle(200, 0, 80, 80, {friction: 0.1, slop: 10, render: { fillStyle: '#33db1d' }});
+      const boxC = Bodies.rectangle(600, 200, 80, 80, {friction: 0.1, slop: 10, render: { fillStyle: '#33db1d' }});
+      const boxD = Bodies.rectangle(200, -450, 80, 80, {friction: 0.1, slop: 10, render: { fillStyle: '#33db1d' }});
+      const boxes = [boxB, boxC, boxD]
   
       const ground = Bodies.rectangle(400, 630, 800, 60, { isStatic: true,});
       const leftWall = Bodies.rectangle(-30, -240, 60, 1800, { isStatic: true });
       const rightWall = Bodies.rectangle(830, -240, 60, 1800, { isStatic: true });
       
-      const hoop = Bodies.rectangle(600, -610, 200, 10, { isStatic: true, render: { fillStyle: "#ffffff"},});
-      const endGoal = Bodies.rectangle(600, -620, 100, 10, { isStatic: true, label: 'endGoal', render: { fillStyle: "transparent"}});
+      const hoop = Bodies.rectangle(600, -1010, 200, 10, { isStatic: true, render: { fillStyle: "#ffffff"},});
+      const endGoal = Bodies.rectangle(600, -1020, 100, 10, { isStatic: true, label: 'endGoal', render: { fillStyle: "transparent"}});
   
       const platform1 = Bodies.rectangle(200, 210, 200, 10, { isStatic: true });
       const platform2 = Bodies.rectangle(600, 410, 200, 10, { isStatic: true });
       const platform3 = Bodies.rectangle(200, -210, 200, 10, { isStatic: true });
       const platform4 = Bodies.rectangle(600, 10, 200, 10, { isStatic: true });
-      const platform5 = Bodies.rectangle(600, -400, 200, 10, { isStatic: true,  collisionFilter:{category: 0} });
-      const platforms = [platform1, platform2, platform3, platform4, platform5]
+      const platform5 = Bodies.rectangle(200, -610, 200, 10, { isStatic: true});
+      const platform6 = Bodies.rectangle(600, -610, 200, 10, { isStatic: true, render: { fillStyle: "#ffffff"}, collisionFilter:{category: 0} });
+      const platforms = [platform1, platform2, platform3, platform4, platform5, platform6]
   
       document.addEventListener("keydown", function (event) {
         if (killControls === true) return
@@ -96,52 +101,7 @@ function Games(){
         }
       });
   
-      
-      // const mouse = Mouse.create(canvasRef?.current);
-      // const mouseConstraint = MouseConstraint.create(engine, {
-      // mouse,
-      // constraint: {
-      //   stiffness: 0.2,
-      //   render: { visible: false },
-      // },
-      // });
-      // render.mouse = mouse; //composite.add below
-      
-      // document.body.addEventListener("mousedown", () => {
-      //     const { x, y } = mouse.position
-      //     // const randX = Math.floor(Math.random()* 800)
-  
-      //     const newBody = Bodies.circle(x, y, 20, {
-      //       restitution: 0.8,
-      //       render: {
-      //         sprite: {
-      //           texture: '/cry.png',
-      //           xScale: 1,
-      //           yScale: 1
-      //         }
-      //       },})
-  
-      //     Composite.add(engine.world, newBody)
-      //   })
-  
-        
-      // follow player
-      // function track(){
-      //   Render.lookAt(render, ballA, {
-      //     x: 400,
-      //     y: 400
-      //   }, true);
-      // }
-
-      // function repeatOften() {
-      //   track()
-      //   requestAnimationFrame(repeatOften);
-      // }
-      // requestAnimationFrame(repeatOften);  
-
-      // add all of the bodies to the world
-      Composite.add(engine.world, [ballA, boxB, ground, ...platforms.map((p) => p), leftWall, rightWall, hoop, endGoal]);
-
+      Composite.add(engine.world, [ballA, ground,...boxes.map((b) => b), ...platforms.map((p) => p), leftWall, rightWall, hoop, endGoal]);
 
       function track() {
           // Get the current Y position of ballA
@@ -215,59 +175,21 @@ function Games(){
   
       }, [gameOver]);
     
-      function tryAgain(){
-        setLevel(1)
+      function resetLevel() {
+        onClick()
       }
-      
-    
     
      return (
-      <div className="place-self-center pt-40 w-full">
+      <>
         {endGame ? <div className="w-52 min-h-40 bg-gradient-to-tr from-blue-950 to-blue-700 absolute top-1/2 left-1/2 -translate-x-1/2 place-content-center ring-2 ring-slate-200 rounded-3xl">
           <h1 className="font-bold text-2xl text-center p-4">You Won!</h1>
-          <button className="place-self-center block ring-2 ring-slate-200 p-2 rounded-xl m-2" onClick={() => {setGameOver(true); setLevel(2)}}>Level 2</button>
-          <button className="place-self-center block ring-2 ring-slate-200 p-2 rounded-xl m-2" onClick={() => {tryAgain; setGameOver(true)}}>Try again?</button>
+          <button className="place-self-center block ring-2 ring-slate-200 p-2 rounded-xl m-2 " onClick={() =>{resetLevel; setGameOver(true)}}>Try again?</button>
           </div>: ''}
-        {level === 1 ? <div ref={canvasRef} className="place-self-center "/> : ''}
-        {level === 2 ? <Level2 onClick={() => tryAgain}/> : ''}
-          <p className="font-bold text-2xl text-center p-4">Controls: W A S D</p>
-      </div>
+        <div ref={canvasRef} className="place-self-center "/>
+      
+      </>
     )
-  
-  //  return (
-  //   <div className="w-screen max-w-screen-xl dark:bg-zinc-900 bg-zinc-300 h-full justify-self-center font-sans p-10 drop-shadow-xl/50">
-  //          <div className="p-4 mb-4">
-  //         <h2 className="text-xl font-bold">Games: <em>Click on the images to try them out</em></h2>
-          
-  //       </div>
-  //       <h2 className="text-xl font-bold">Personal Projects:</h2>
-  //       <div className="dark:bg-zinc-800 rounded-md p-4 flex justify-around align-middle">
-  //         <div>
-          
-  //         <h2 className="text-xl font-bold">Pundle</h2>
-  //         <p>
-  //           Guess the pun by typing in 5 letter words<br />Green means
-  //           correct, yellow means wrong position.
-  //         </p>
-  //         <a href="./pundle/pun.html">
-  //           <img src="./images/pun-game.jpg" alt="gameImg" className="max-w-96"/>
-  //         </a>
-  //       </div>
-  //       <div>
-  //         <h2 className="text-xl font-bold">Survival Game</h2>
-  //         <p>
-  //           Try to survive<br />Use the items to keep stickman going as long
-  //           as possible
-  //         </p>
-  //         <a href="https://survivalgame-j619.onrender.com/">
-  //           <img src="./images/survival.png" alt="gameImg" className="max-w-96 place-self-center align-middle"/>
-  //         </a>
-  //       </div>
-  //       </div>
-  //   </div>
-  //)
-
   
 }
 
-export default Games
+export default Level2
