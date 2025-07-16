@@ -49,7 +49,7 @@ const Home = () => {
         <GeminiQuiz/>
       </div>
       <BlurText
-        text="More personal projects:"
+        text="More projects:"
         delay={100}
         animateBy="words"
         direction="top"

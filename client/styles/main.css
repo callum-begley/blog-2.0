@@ -74,3 +74,9 @@ select:focus{
   outline: none;
 }
 
+.contactFormButton:disabled {
+  background-color: rgba(65, 65, 65, 0.993);
+  cursor: not-allowed;
+  color: black
+}
+
