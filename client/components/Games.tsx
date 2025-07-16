@@ -217,7 +217,10 @@ function Games(){
 
     
      return (
-      <div className="place-self-center pt-40 w-full">
+      <>
+      <h2 className="font-bold text-4xl pt-16 pb-10 text-center p-4">Hoop Dreams, made with matter.js</h2>
+      <div className="place-self-center  w-full">
+        
         {endGame && level === 1? <div className="w-52 min-h-40 bg-gradient-to-tr from-blue-950 to-blue-700 absolute top-1/2 left-1/2 -translate-x-1/2 place-content-center ring-2 ring-slate-200 rounded-3xl">
           <h1 className="font-bold text-2xl text-center p-4">You Won!</h1>
           <button className="place-self-center block ring-2 ring-slate-200 p-2 rounded-xl m-2" onClick={() => {setGameOver(true); setLevel(2)}}>Level 2</button>
@@ -227,6 +230,7 @@ function Games(){
         {level === 2 ? <Level2/> : ''}
           <p className="font-bold text-2xl text-center p-4">Controls: W A S D</p>
       </div>
+      </>
     )
   
   //  return (
