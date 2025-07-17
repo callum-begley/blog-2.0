@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react'
-import {APIProvider, Map, MapCameraChangedEvent, AdvancedMarker, Pin, MapMouseEvent} from '@vis.gl/react-google-maps';
+import {APIProvider, Map, MapCameraChangedEvent, AdvancedMarker, MapMouseEvent} from '@vis.gl/react-google-maps';
 
 
 declare global {
@@ -11,7 +11,7 @@ declare global {
 function Geo() {
   const [marker, setMarker] = useState<{lat: number, lng: number} | null>(null);
   const [mapSize, setMapSize] = useState<{width: string, height: string}>({width: '400px', height: '300px'});
-  const [expanded, setExpanded] = useState(false);
+  const [expanded, setExpanded] = useState(0);
   const [currentLocation, setCurrentLocation] = useState<{ lat: number, lng: number } | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [mapsLoaded, setMapsLoaded] = useState(false);
@@ -45,8 +45,10 @@ function Geo() {
     const tryRandomLocation = async (): Promise<{lat: number, lng: number} | null> => {
       if (attempts >= maxAttempts) {
         console.log('Max attempts reached, using fallback location');
-        return { lat: 40.748817, lng: -73.985428 }; // NYC fallback
+        return { lat: -20.152288051191736, lng: -67.47815303851836 }; // fallback
+        // Antarctica: -65.1172937, lng: -63.9998866
       }
+      
 
       const randomCoords = getRandomCoordinates();
       attempts++;
@@ -60,6 +62,7 @@ function Geo() {
           if (status === google.maps.StreetViewStatus.OK && data?.location?.latLng) {
             const lat = data.location.latLng.lat();
             const lng = data.location.latLng.lng();
+            attempts = 0
             resolve({ lat, lng });
           } else {
             // Try again with new random coordinates
@@ -80,16 +83,24 @@ function Geo() {
       };
       setMarker(newMarker);
     }
-    console.log('Map clicked at:', event.detail.latLng);
   };
 
-  const expandMap = () => {
-    if (expanded) {
+  interface ExpandMapEvent extends React.MouseEvent<HTMLButtonElement> {
+    target: HTMLButtonElement & { innerHTML: string };
+  }
+
+  const expandMap = (event: ExpandMapEvent): void => {
+    console.log(event.target.innerHTML);
+    if (expanded === 1 && event.target.innerHTML === '-') {
       setMapSize({width: '400px', height: '300px'})
-    } else {
+      setExpanded(0)
+    } else if (expanded === 0 && event.target.innerHTML === '+' || expanded === 2 && event.target.innerHTML === '-') { 
       setMapSize({width: '800px', height: '600px'})
+      setExpanded(1)
+    } else if (expanded === 1 && event.target.innerHTML === '+') {
+      setMapSize({width: '75%', height: '100%'})
+      setExpanded(2)
     }
-    setExpanded(!expanded)
   };
 
   const initialize = useCallback(() => {
@@ -122,6 +133,7 @@ function Geo() {
         clickToGo: true,
         scrollwheel: true,
         compassControl: false,
+        gestureHandling: 'greedy',
       } as google.maps.StreetViewPanoramaOptions & { compassControl: boolean }
     );
 
@@ -136,12 +148,10 @@ function Geo() {
 
   const loadRandomLocation = useCallback(async () => {
     setIsLoading(true);
-    console.log('Finding random street view location...');
     const newLocation = await findRandomStreetViewLocation();
     
     if (newLocation) {
       setCurrentLocation(newLocation);
-      console.log('Found location:', newLocation);
       
       // Update the panorama with the new location
       const panorama = new google.maps.StreetViewPanorama(
@@ -164,6 +174,7 @@ function Geo() {
           clickToGo: true,
           scrollwheel: true,
           compassControl: false,
+          gestureHandling: 'greedy',
         } as google.maps.StreetViewPanoramaOptions & { compassControl: boolean }
       );
 
@@ -219,20 +230,18 @@ function Geo() {
       
       // Calculate appropriate zoom level based on distance
       let zoom = 10;
-      if (distance > 1000000) zoom = 4;       // > 1000km
-      else if (distance > 500000) zoom = 5;   // > 500km
-      else if (distance > 100000) zoom = 7;   // > 100km
+      if (distance > 1000000) zoom = 3;       // > 1000km
+      else if (distance > 500000) zoom = 4;   // > 500km
+      else if (distance > 100000) zoom = 6;   // > 100km
       else if (distance > 50000) zoom = 8;    // > 50km
       else if (distance > 10000) zoom = 10;   // > 10km
       else zoom = 12;                         // < 10km
-
-      console.log('Distance:', distance);
 
       setScoreAlert('+ ' + Math.max(0, 100 - Math.floor(Math.sqrt(distance) / 20)) + ' POINTS');
       setScore((prevScore) => prevScore + Math.max(0, 100 - Math.floor(Math.sqrt(distance) / 20))); // Simple scoring based on distance
       setMapZoom(zoom);
       setShowResultsMap(true);
-      setExpanded(true);
+      //setExpanded(true);
       setMapSize({width: '100%', height: '100%'});
     }
     
@@ -246,7 +255,7 @@ function Geo() {
     setLastGuess(null);
     setMapCenter({ lat: 0, lng: 0 });
     setMapZoom(1);
-    setExpanded(false);
+    setExpanded(0);
     setMapSize({width: '400px', height: '300px'});
     setScoreAlert('')
     // Load new random location
@@ -267,10 +276,16 @@ function Geo() {
           </div>
         </div>
       )}
+
+      {/* restart button */}
+      <button onClick={() => initialize()}
+        className="absolute bottom-32 left-6 p-1 ring-2 ring-white rounded-lg z-40 items-center justify-center bg-gray-500 bg-opacity-60"
+      ><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-rotate-ccw-icon lucide-rotate-ccw inline"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+        Start</button>
       
       {/* Custom Compass - only show when location is loaded */}
       {currentLocation && (
-        <div className='absolute bottom-4 left-4 z-30 w-20 h-20 bg-black bg-opacity-60 rounded-full flex items-center justify-center border-2 border-white'>
+        <div className='absolute bottom-8 left-4 z-30 w-20 h-20 bg-black bg-opacity-60 rounded-full flex items-center justify-center border-2 border-white'>
           <div className='relative w-16 h-16'>
             {/* Compass circle */}
             <div className='absolute inset-0 rounded-full  bg-gray-800'></div>
@@ -300,7 +315,6 @@ function Geo() {
         style={{ width: mapSize.width, height: mapSize.height }}
       >
         <APIProvider apiKey={import.meta.env.VITE_MAPS_API_KEY || ''} onLoad={() => {
-          console.log('Maps API has loaded.');
           setMapsLoaded(true);
         }}>
           <div className="relative h-full w-full [&_.gm-style-cc]:hidden [&_.gm-style]:child:[last-child]:hidden">
@@ -318,7 +332,6 @@ function Geo() {
       disableDefaultUI={true}
       onClick={handleMapClick}
       onCameraChanged={ (ev: MapCameraChangedEvent) => {
-        //console.log('camera changed:', ev.detail.center, 'zoom:', ev.detail.zoom);
         // Update state when user interacts with map
         setMapCenter(ev.detail.center);
         setMapZoom(ev.detail.zoom);
@@ -326,29 +339,45 @@ function Geo() {
       {/* Show guess marker (red) and actual location marker (green) in results mode */}
       {showResultsMap && lastGuess && (
         <>
-          <AdvancedMarker position={lastGuess}>
-            <Pin background={'#DC2626'} borderColor={'#991B1B'} />
+          <AdvancedMarker position={currentLocation} >
+            <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="#16A34A" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-map-pin-check-inside-icon lucide-map-pin-check-inside"><path d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0"/><path d="m9 10 2 2 4-4"/></svg>
           </AdvancedMarker>
-          <AdvancedMarker position={currentLocation}>
-            <Pin background={'#16A34A'} borderColor={'#15803D'} />
+          <AdvancedMarker position={lastGuess}>
+            <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="#DC2626" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-map-pin-icon lucide-map-pin"><path d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0"/><circle cx="12" cy="10" r="3"/></svg>
           </AdvancedMarker>
         </>
       )}
       {/* Show normal guess marker when not in results mode */}
       {!showResultsMap && marker && (
         <AdvancedMarker position={marker}>
-          <Pin />
+          <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="#DC2626" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-map-pin-icon lucide-map-pin"><path d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0"/><circle cx="12" cy="10" r="3"/></svg>
         </AdvancedMarker>
       )}
    </Map>
    </div>
         </APIProvider>
-        <button className='absolute top-0 left-0 bg-gray-500 bg-opacity-40 text-white  px-2 rounded text-2xl' onClick={() => expandMap()} disabled={showResultsMap}>
-          {expanded ? '-' : '+'}
+        {/* zoom buttons */}
+        {expanded === 0 ?
+        <button className='absolute top-0 left-0 bg-gray-500 bg-opacity-40 text-white  px-2 rounded text-2xl' onClick={expandMap} disabled={showResultsMap}>
+          +
+        </button> : ''}
+        {expanded === 1 ? (
+          <div className='flex absolute top-0 left-0'>
+          <button className=' bg-gray-500 bg-opacity-40 text-white  px-2 rounded text-2xl' onClick={expandMap} disabled={showResultsMap}>
+          +
+          </button>
+          <button className='bg-gray-500 bg-opacity-40 text-white  px-2 rounded text-2xl' onClick={expandMap} disabled={showResultsMap}>
+          -
         </button>
+        </div>
+        ) : ''}
+        {expanded === 2 ?
+        <button className='absolute top-0 left-0 bg-gray-500 bg-opacity-40 text-white  px-2 rounded text-2xl' onClick={expandMap} disabled={showResultsMap}>
+          -
+        </button> : ''}
         {!showResultsMap ? (
           <button 
-            className='absolute bottom-0 left-0 bg-green-500 text-white p-1 rounded text-xl disabled:bg-gray-500 disabled:text-gray-400' 
+            className='absolute bottom-0 left-0 bg-green-500 text-white p-1 rounded text-xl ring-2 ring-white disabled:bg-gray-500 disabled:text-gray-400' 
             onClick={() => submitGuess()}
             disabled={isLoading || !marker}
           >
