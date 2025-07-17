@@ -133,7 +133,7 @@ function Geo() {
         clickToGo: true,
         scrollwheel: true,
         compassControl: false,
-        gestureHandling: 'greedy',
+        gestureHandling: 'passive',
       } as google.maps.StreetViewPanoramaOptions & { compassControl: boolean }
     );
 
@@ -174,7 +174,7 @@ function Geo() {
           clickToGo: true,
           scrollwheel: true,
           compassControl: false,
-          gestureHandling: 'greedy',
+          gestureHandling: 'passive',
         } as google.maps.StreetViewPanoramaOptions & { compassControl: boolean }
       );
 
@@ -230,12 +230,17 @@ function Geo() {
       
       // Calculate appropriate zoom level based on distance
       let zoom = 10;
-      if (distance > 1000000) zoom = 3;       // > 1000km
-      else if (distance > 500000) zoom = 4;   // > 500km
-      else if (distance > 100000) zoom = 6;   // > 100km
-      else if (distance > 50000) zoom = 8;    // > 50km
+      if (distance > 4000000) zoom = 2; 
+      else if (distance > 3000000) zoom = 3; 
+      else if (distance > 2000000) zoom = 4;  // > 2000km
+      else if (distance > 1000000) zoom = 5;  // > 1000km
+      else if (distance > 500000) zoom = 6;   // > 500km
+      else if (distance > 100000) zoom = 7;  // > 100km
+      else if (distance > 50000) zoom = 8;   // > 50km
       else if (distance > 10000) zoom = 10;   // > 10km
       else zoom = 12;                         // < 10km
+
+      console.log('d&z', distance, zoom)
 
       setScoreAlert('+ ' + Math.max(0, 100 - Math.floor(Math.sqrt(distance) / 20)) + ' POINTS');
       setScore((prevScore) => prevScore + Math.max(0, 100 - Math.floor(Math.sqrt(distance) / 20))); // Simple scoring based on distance
@@ -258,6 +263,7 @@ function Geo() {
     setExpanded(0);
     setMapSize({width: '400px', height: '300px'});
     setScoreAlert('')
+    setMarker(null);
     // Load new random location
     loadRandomLocation();
   };
@@ -317,7 +323,7 @@ function Geo() {
         <APIProvider apiKey={import.meta.env.VITE_MAPS_API_KEY || ''} onLoad={() => {
           setMapsLoaded(true);
         }}>
-          <div className="relative h-full w-full [&_.gm-style-cc]:hidden [&_.gm-style]:child:[last-child]:hidden">
+          <div className="relative h-full w-full [&_.gm-style-cc]:hidden [&_.gm-style]:child:[last-child]:hidden mapCursor">
           <Map
       zoom={mapZoom}
       center={mapCenter}
