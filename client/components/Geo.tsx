@@ -258,10 +258,13 @@ function Geo() {
       <p className='absolute top-0 left-0 p-2 z-50 bg-blue-500 rounded-lg ring-2 ring-white text-white text-2xl translate-x-1 translate-y-1 '>Score: {score}</p>
       {showResultsMap ? <p className='absolute top-2 left-[50%] p-2 z-50 bg-green-500 rounded-lg ring-2 ring-white text-white text-4xl font-semibold -translate-x-[50%]'>{scoreAlert}</p> : ''}
       
-      {/* Show loading/black screen when no location is loaded */}
-      {!currentLocation && (
+      {/* Show loading/black screen when no location is loaded or loading */}
+      {(!currentLocation || isLoading) && (
         <div className='absolute top-0 left-0 z-20 h-screen w-full bg-black flex items-center justify-center'>
-          <div className='text-white text-2xl'>Loading random location...</div>
+          <div className='text-white text-2xl flex flex-col items-center gap-4'>
+            <div className='animate-spin rounded-full h-16 w-16 border-b-2 border-white'></div>
+            <div>{isLoading ? 'Loading next location...' : 'Loading random location...'}</div>
+          </div>
         </div>
       )}
       
