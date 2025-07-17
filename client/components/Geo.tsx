@@ -23,6 +23,7 @@ function Geo() {
   const [score, setScore] = useState(0);
   const [scoreAlert, setScoreAlert] = useState('');
   const [currentHeading, setCurrentHeading] = useState(0);
+  const [distanceDisplay, setDistanceDisplay] = useState(0);
 
   const getRandomCoordinates = () => {
     // Generate random latitude between -85 and 85 (avoiding extreme poles)
@@ -227,7 +228,8 @@ function Geo() {
         new google.maps.LatLng(marker.lat, marker.lng),
         new google.maps.LatLng(currentLocation.lat, currentLocation.lng)
       );
-      
+      setDistanceDisplay(Math.floor(distance / 1000)); // Display distance in km
+
       // Calculate appropriate zoom level based on distance
       let zoom = 10;
       if (distance > 4000000) zoom = 2; 
@@ -271,7 +273,7 @@ function Geo() {
   return (
     <div className='h-screen w-full'>
       <p className='absolute top-0 left-0 p-2 z-50 bg-blue-500 rounded-lg ring-2 ring-white text-white text-2xl translate-x-1 translate-y-1 '>Score: {score}</p>
-      {showResultsMap ? <p className='absolute top-2 left-[50%] p-2 z-50 bg-green-500 rounded-lg ring-2 ring-white text-white text-4xl font-semibold -translate-x-[50%]'>{scoreAlert}</p> : ''}
+      {showResultsMap ? <p className='absolute top-2 left-[50%] p-2 z-50 bg-green-500 rounded-lg ring-2 ring-white text-white text-4xl font-semibold -translate-x-[50%]'>{scoreAlert}<p className='text-xl text-center'>{distanceDisplay} KM AWAY</p></p> : ''}
       
       {/* Show loading/black screen when no location is loaded or loading */}
       {(!currentLocation || isLoading) && (
@@ -336,6 +338,7 @@ function Geo() {
       fullscreenControl={false}
       clickableIcons={false}
       disableDefaultUI={true}
+      gestureHandling={'passive'}
       onClick={handleMapClick}
       onCameraChanged={ (ev: MapCameraChangedEvent) => {
         // Update state when user interacts with map
