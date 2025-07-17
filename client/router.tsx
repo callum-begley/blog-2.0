@@ -11,6 +11,7 @@ import AboutMe from './components/AboutMe'
 import Games from './components/Games'
 import NotFoundPage from './components/NotFoundPage'
 import Flappy from './components/Flappy'
+import Geo from './components/Geo'
 
 const routes = createRoutesFromElements(
   <Route path="/" element={<App />}>
@@ -19,6 +20,7 @@ const routes = createRoutesFromElements(
     <Route path="/About-Me" element={<AboutMe />} />
     <Route path="/Games" element={<Games />} />
     <Route path="/Flappy" element={<Flappy />} />
+    <Route path="/Geo" element={<Geo />} />
     <Route path="*" element={<NotFoundPage />} />
   </Route>
 )
