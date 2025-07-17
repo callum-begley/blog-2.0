@@ -12,7 +12,7 @@ function Geo() {
   const [marker, setMarker] = useState<{lat: number, lng: number} | null>(null);
   const [mapSize, setMapSize] = useState<{width: string, height: string}>({width: '400px', height: '300px'});
   const [expanded, setExpanded] = useState(false);
-  const [currentLocation, setCurrentLocation] = useState({ lat: 42.345573, lng: -71.098326 });
+  const [currentLocation, setCurrentLocation] = useState<{ lat: number, lng: number } | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [mapsLoaded, setMapsLoaded] = useState(false);
   const [hasLoadedInitialLocation, setHasLoadedInitialLocation] = useState(false);
@@ -93,7 +93,7 @@ function Geo() {
   };
 
   const initialize = useCallback(() => {
-    if (!mapsLoaded) return;
+    if (!mapsLoaded || !currentLocation) return;
     
     const map = new google.maps.Map(
       document.getElementById("map") as HTMLElement,
@@ -198,7 +198,7 @@ function Geo() {
   const submitGuess = () => {
     // Logic to handle the guess submission
     
-    if (marker) {
+    if (marker && currentLocation) {
       // Store the guess for results display
       setLastGuess(marker);
       
@@ -258,21 +258,29 @@ function Geo() {
       <p className='absolute top-0 left-0 p-2 z-50 bg-blue-500 rounded-lg ring-2 ring-white text-white text-2xl translate-x-1 translate-y-1 '>Score: {score}</p>
       {showResultsMap ? <p className='absolute top-2 left-[50%] p-2 z-50 bg-green-500 rounded-lg ring-2 ring-white text-white text-4xl font-semibold -translate-x-[50%]'>{scoreAlert}</p> : ''}
       
-      {/* Custom Compass */}
-      <div className='absolute bottom-4 left-4 z-30 w-20 h-20 bg-black bg-opacity-60 rounded-full flex items-center justify-center border-2 border-white'>
-        <div className='relative w-16 h-16'>
-          {/* Compass circle */}
-          <div className='absolute inset-0 rounded-full  bg-gray-800'></div>
-          {/* North indicator */}
-          <div 
-            className='absolute top-2 left-1/2 w-1 h-6 bg-red-500 rounded-full transform -translate-x-1/2 origin-bottom'
-            style={{ transform: ` rotate(${-currentHeading}deg)` }}
-          ><p className='absolute top-2 left-1/2 w-1 h-6 transform -translate-y-7 -translate-x-1.5 origin-bottom'>N</p><div 
-            className='absolute top-2 left-1/2 w-1 h-6 bg-white rounded-full transform -translate-x-1/2 translate-y-[65%] origin-bottom'
-          ></div></div>
+      {/* Show loading/black screen when no location is loaded */}
+      {!currentLocation && (
+        <div className='absolute top-0 left-0 z-20 h-screen w-full bg-black flex items-center justify-center'>
+          <div className='text-white text-2xl'>Loading random location...</div>
         </div>
-
-      </div>
+      )}
+      
+      {/* Custom Compass - only show when location is loaded */}
+      {currentLocation && (
+        <div className='absolute bottom-4 left-4 z-30 w-20 h-20 bg-black bg-opacity-60 rounded-full flex items-center justify-center border-2 border-white'>
+          <div className='relative w-16 h-16'>
+            {/* Compass circle */}
+            <div className='absolute inset-0 rounded-full  bg-gray-800'></div>
+            {/* North indicator */}
+            <div 
+              className='absolute top-2 left-1/2 w-1 h-6 bg-red-500 rounded-full transform -translate-x-1/2 origin-bottom'
+              style={{ transform: ` rotate(${-currentHeading}deg)` }}
+            ><p className='absolute top-2 left-1/2 w-1 h-6 transform -translate-y-7 -translate-x-1.5 origin-bottom'>N</p><div 
+              className='absolute top-2 left-1/2 w-1 h-6 bg-white rounded-full transform -translate-x-1/2 translate-y-[65%] origin-bottom'
+            ></div></div>
+          </div>
+        </div>
+      )}
 
       {/* Hidden div for Google Maps API initialization */}
       <div id="map" style={{ display: 'none' }}></div>
