@@ -54,7 +54,7 @@ function ContactForm(){
 
   
    return (
-    <div className="w-full">
+    <div id='contact' className="w-full">
     
     <div className="bg-zinc-700 bg-opacity-40 backdrop-blur-sm grid min-h-[30rem] rounded-2xl place-content-center text-center p-4 ring-2 dark:ring-white 
     ring-zinc-800 my-10 hover:bg-opacity-60">
@@ -71,7 +71,7 @@ function ContactForm(){
       <form
         onSubmit={handleSubmit}
         ref={form}
-        className="ring-2 ring-zinc-600 rounded-lg place-self-center grid grid-cols-[1fr_3fr] w-96 p-6 m-6"
+        className="ring-2 ring-zinc-600 rounded-lg place-self-center grid grid-cols-[1fr_3fr] w-full p-6 m-6"
       >
         <label htmlFor="name">Name:</label>
         <input

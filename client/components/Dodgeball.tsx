@@ -1,7 +1,7 @@
 import Matter, { World } from "matter-js"
 import { useEffect, useRef, useState } from "react";
 
-function AboutMe(){
+function Dodgeball(){
   const canvasRef = useRef<HTMLDivElement | undefined>(undefined)
   let timer = 0
   const [showTime, setShowTime] = useState(0)
@@ -298,4 +298,4 @@ function AboutMe(){
   )
 }
 
-export default AboutMe
+export default Dodgeball

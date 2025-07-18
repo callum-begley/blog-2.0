@@ -16,10 +16,10 @@ function App() {
     <main className={`${darkMode ? ' dark ' : ' light '} overflow-hidden `}>
        <div className='z-0'>
           <Particles
-            particleColors={darkMode ? ['#ffffff', '#ffffff'] : ['#32CD32', '#32CD32']} 
+            particleColors={darkMode ? ['#ffffff', '#ffffff', '#ffffff', '#ffffff'] : ['#1d4ed8', '#fcf00d', '#1d4ed8', '#fcf00d']} 
             particleCount={600}
             particleSpread={10}
-            speed={0.05}
+            speed={0.03}
             particleBaseSize={50}
             moveParticlesOnHover={true}
             alphaParticles={false}
@@ -27,7 +27,7 @@ function App() {
           />
         </div>
       <Header onClick={switchMode} currentMode={darkMode}/>
-      <div className='dark:bg-black dark:text-white bg-white text-black min-h-screen font-[Kanit] -z-20' >
+      <div className='dark:bg-black dark:text-white bg-sky-300 text-gray-700 min-h-screen font-[Kanit] -z-20' >
         <div className='relative z-10'>
         <Outlet />
         </div>

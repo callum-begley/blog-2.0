@@ -1,3 +1,4 @@
+import { HashLink } from "react-router-hash-link";
 import Nav from "./Nav"
 import FallingText from './bits/FallingText';
 interface HeaderProps {
@@ -25,7 +26,7 @@ const Header: React.FC<HeaderProps> = ({ onClick, currentMode }) => {
         transition duration-500 ease-in-out hover:scale-110 rounded-full m-4 h-12 w-12">{currentMode ? <div className="material-symbols-outlined text-4xl justify-self-center font-light">dark_mode</div> : <div className="material-symbols-outlined text-4xl justify-self-center font-light">light_mode</div>}</button>
 
         <button className="fixed right-0 sm:bottom-10 bottom-0 p-1 text-5xl bg-zinc-600 hover:bg-zinc-400 transition duration-500 opacity-30 hover:opacity-100 ring-2 ring-white
-        ease-in-out hover:scale-110 rounded-full m-4 h-12 w-12"><a href="#header" className="line"><img src='/down-arrow.png' className="invert rotate-180 w-8 translate-x-1"  alt=''/></a></button>
+        ease-in-out hover:scale-110 rounded-full m-4 h-12 w-12"><HashLink smooth to="#header" className="line"><img src='/down-arrow.png' className="invert rotate-180 w-8 translate-x-1"  alt=''/></HashLink></button>
     </header>
   )
 }
