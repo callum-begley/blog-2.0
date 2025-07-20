@@ -380,7 +380,7 @@ function Geo() {
     setShowResultsMap(false);
     setLastGuess(null);
     setMapCenter({ lat: 0, lng: 0 });
-    setMapZoom(3);
+    setMapZoom(2);
     setScoreAlert('')
     setMarker(null);
   };
@@ -555,7 +555,9 @@ function Geo() {
             className='absolute bottom-0 block bg-blue-500 text-white p-1 rounded text-2xl ring-2 ring-white animate-pulse -translate-y-4' 
             onClick={() => nextRound()}
           >
-            { roundNumber >= 5 ? 'Finish' : 'Next Round' }
+            { roundNumber < 5 &&  'Next Round' }
+            { roundNumber === 5 && 'Finish' }
+            { roundNumber > 5 && 'New Game' }
           </button>
         )}
       </div>
