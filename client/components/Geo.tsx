@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react'
-import {APIProvider, Map, MapCameraChangedEvent, AdvancedMarker, MapMouseEvent} from '@vis.gl/react-google-maps';
+import {APIProvider, Map, MapCameraChangedEvent, AdvancedMarker, MapMouseEvent, useMap} from '@vis.gl/react-google-maps';
 
 
 declare global {
@@ -7,6 +7,19 @@ declare global {
     initialize: () => void;
   }
 }
+
+// Helper component to access map instance
+const MapHelper = ({ onMapReady }: { onMapReady: (map: google.maps.Map) => void }) => {
+  const map = useMap();
+  
+  useEffect(() => {
+    if (map) {
+      onMapReady(map);
+    }
+  }, [map, onMapReady]);
+  
+  return null;
+};
 
 function Geo() {
   const [marker, setMarker] = useState<{lat: number, lng: number} | null>(null);
@@ -26,6 +39,11 @@ function Geo() {
   const [distanceDisplay, setDistanceDisplay] = useState(0);
   const [gameStarted, setGameStarted] = useState(false);
   const [roundNumber, setRoundNumber] = useState(1);
+  const [playerGuesses, setPlayerGuesses] = useState<Array<{lat: number, lng: number} | null>>([]);
+  const [correctGuesses, setCorrectGuesses] = useState<Array<{lat: number, lng: number} | null>>([]);
+  const [showFinalResults, setShowFinalResults] = useState(false);
+  const [finalPolylines, setFinalPolylines] = useState<google.maps.Polyline[]>([]);
+  const [mapInstance, setMapInstance] = useState<google.maps.Map | null>(null);
 
   const getRandomCoordinates = () => {
     // Generate random latitude between -85 and 85 (avoiding extreme poles)
@@ -193,6 +211,27 @@ function Geo() {
     setIsLoading(false);
   }, [findRandomStreetViewLocation]);
 
+  // Function to draw polyline between two points
+  const drawPolyline = useCallback((point1: {lat: number, lng: number}, point2: {lat: number, lng: number}, map?: google.maps.Map) => {
+    if (!window.google) return null;
+    
+    const polyline = new google.maps.Polyline({
+      path: [point1, point2],
+      geodesic: true,
+      strokeColor: '#3d3d3d',
+      strokeOpacity: 0.8,
+      strokeWeight: 1,
+      zIndex: 1000
+    });
+    
+    // If map is provided, set the polyline on the map
+    if (map) {
+      polyline.setMap(map);
+    }
+    
+    return polyline;
+  }, []);
+
   useEffect(() => {
     // Initialize when both maps are loaded and we have a current location
     if (mapsLoaded) {
@@ -206,6 +245,40 @@ function Geo() {
       }
     }
   }, [initialize, mapsLoaded, hasLoadedInitialLocation, loadRandomLocation]);
+
+    // Effect to create polylines for final results
+  useEffect(() => {
+    // Clear existing polylines first
+    finalPolylines.forEach(polyline => polyline.setMap(null));
+    setFinalPolylines([]);
+    
+    if (showFinalResults && mapInstance && playerGuesses.length > 0 && correctGuesses.length > 0) {
+      console.log('Creating polylines using mapInstance from state...');
+      const newPolylines: google.maps.Polyline[] = [];
+      
+      for (let i = 0; i < Math.min(playerGuesses.length, correctGuesses.length); i++) {
+        const guess = playerGuesses[i];
+        const correct = correctGuesses[i];
+        
+        if (guess && correct) {
+          const polyline = drawPolyline(guess, correct, mapInstance);
+          if (polyline) {
+            newPolylines.push(polyline);
+            console.log(`Drew polyline ${i} from`, guess, 'to', correct);
+          }
+        }
+      }
+      setFinalPolylines(newPolylines);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [showFinalResults, playerGuesses, correctGuesses, drawPolyline, mapInstance]);
+
+  // Cleanup effect for polylines when component unmounts
+  useEffect(() => {
+    return () => {
+      finalPolylines.forEach(polyline => polyline.setMap(null));
+    };
+  }, [finalPolylines]);
 
   window.initialize = initialize;
 
@@ -252,6 +325,10 @@ function Geo() {
       setShowResultsMap(true);
       //setExpanded(true);
       setMapSize({width: '100%', height: '100%'});
+      setPlayerGuesses((prev) => [...prev, marker]);
+      setCorrectGuesses((prev) => [...prev, currentLocation]);
+      console.log('Player guesses:', playerGuesses); 
+      console.log('Correct guesses:', correctGuesses);
     }
     
     // Clear the marker
@@ -259,6 +336,14 @@ function Geo() {
   };
 
   const nextRound = () => {
+    setRoundNumber((prev) => prev + 1);
+    console.log('Round:', roundNumber);
+    if (roundNumber >= 5) {
+      endGame();
+      console.log('Game Over! Final Score:', score);
+      return;
+    } 
+
     // Reset everything for next round
     setShowResultsMap(false);
     setLastGuess(null);
@@ -272,9 +357,32 @@ function Geo() {
     loadRandomLocation();
   };
 
+  const startGame = () => {
+    setGameStarted(true)
+    setRoundNumber(1);
+    setScore(0);
+    setPlayerGuesses([]);
+    setCorrectGuesses([]);
+    loadRandomLocation();
+  };
+
+  const endGame = () => {
+    setShowFinalResults(true);
+    setMapSize({width: '100%', height: '100%'});
+    console.log('Game Over! Final Score:', score);
+    setShowResultsMap(false);
+    setLastGuess(null);
+    setMapCenter({ lat: 0, lng: 0 });
+    setMapZoom(3);
+    setRoundNumber(1);
+    setScoreAlert('')
+    setMarker(null);
+  };
+
   return (
     <div className='h-screen w-full'>
-      <p className='absolute top-0 left-0 p-2 z-50 bg-blue-500 rounded-lg ring-2 ring-white text-white text-2xl translate-x-1 translate-y-1 '>Score: {score}</p>
+      { gameStarted && !showFinalResults && <p className='absolute top-0 left-0 p-2 z-50 bg-blue-500 rounded-lg ring-2 ring-white text-white text-2xl translate-x-1 translate-y-1 '>Score: {score}</p> }
+      { gameStarted && !showFinalResults && <p className='absolute top-0 right-0 p-2 z-50 bg-blue-500 rounded-lg ring-2 ring-white text-white text-2xl -translate-x-1 translate-y-1 '>Round: {roundNumber}</p> }
       {showResultsMap ? <p className='absolute top-2 left-[50%] p-2 z-50 bg-green-500 rounded-lg ring-2 ring-white text-white text-4xl font-semibold -translate-x-[50%]'>{scoreAlert}<p className='text-xl text-center'>{distanceDisplay} KM AWAY</p></p> : ''}
       
       {/* Show loading/black screen when no location is loaded or loading */}
@@ -288,21 +396,25 @@ function Geo() {
       )}
 
       {!gameStarted && (
-        <div className='absolute top-0 left-0 z-20 h-screen w-full bg-blue-500 flex items-center justify-center'>
+        <div className='absolute top-0 left-0 z-20 h-screen w-full bg-blue-500 flex items-center justify-center' 
+        style={{
+           background: 'linear-gradient(180deg,rgba(59, 130, 246, 1) 25%, rgba(34, 197, 94, 1) 76%)'
+        }}
+        >
           <div className='text-white text-2xl flex flex-col items-center gap-4'>
             <h2 className='text-6xl font-bold mb-4'>Geo Guessing Game</h2>
-            <p className='text-xl mb-8'>Guess the location based on the street view!</p>
+            <p className='text-xl mb-8'>Guess the location based on the street view image!</p>
             <p className='text-lg mb-4'>Score points based on how close your guess is to the actual location.</p>
-            <p className='text-lg mb-4'>There are 5 rounds</p>
-          <button onClick={() => setGameStarted(true)}
-            className="p-1 ring-2 ring-white rounded-lg z-40 items-center justify-center bg-gray-500 bg-opacity-60"
+            <p className='text-lg mb-4'>There are 5 rounds, each with a different location to guess.</p>
+          <button onClick={() => startGame()}
+            className="p-4 ring-2 ring-white rounded-lg z-40 items-center justify-center"
           >Start Game</button>
           </div>
         </div>
       )}
       
 
-      {/* restart button */}
+      {/* back to start button */}
       {gameStarted && (
       <button onClick={() => initialize()}
         className="absolute bottom-32 left-6 p-1 ring-2 ring-white rounded-lg z-40 items-center justify-center bg-gray-500 bg-opacity-60"
@@ -326,6 +438,8 @@ function Geo() {
         </div>
       )}
 
+      {showFinalResults && (<h2 className='text-6xl font-bold absolute top-4 z-50 left-1/2 -translate-x-1/2'>Final Result</h2>)}
+      {showFinalResults && (<h2 className='text-4xl font-bold p-4 bg-green-500 ring-2 ring-white rounded-xl absolute bottom-20 z-50 left-1/2 -translate-x-1/2'>Final Score: {score}</h2>)}
       {/* Hidden div for Google Maps API initialization */}
       <div id="map" style={{ display: 'none' }}></div>
       
@@ -338,13 +452,17 @@ function Geo() {
       {/* Regular Map */}
       { gameStarted && (
       <div 
-        className="dark:bg-black dark:text-white bg-white text-black absolute bottom-0 right-0 z-40" 
-        style={{ width: mapSize.width, height: mapSize.height }}
+        //className="dark:bg-black dark:text-white bg-white text-black absolute bottom-0 right-0 z-40" 
+        style={ showResultsMap || showFinalResults? {
+          width: mapSize.width, height: mapSize.height, 
+          background: 'linear-gradient(180deg,rgba(59, 130, 246, 1) 25%, rgba(34, 197, 94, 1) 76%)'
+        } : { width: mapSize.width, height: mapSize.height }}
+        className={showResultsMap || showFinalResults ? 'absolute top-0 left-0 z-40 p-20 h-screen w-full bg-blue-500 flex items-center justify-center' : "dark:bg-black dark:text-white bg-white text-black absolute bottom-0 right-0 z-40" }
       >
         <APIProvider apiKey={import.meta.env.VITE_MAPS_API_KEY || ''} onLoad={() => {
           setMapsLoaded(true);
         }}>
-          <div className="relative h-full w-full [&_.gm-style-cc]:hidden [&_.gm-style]:child:[last-child]:hidden mapCursor">
+          <div className='relative h-full w-full [&_.gm-style-cc]:hidden [&_.gm-style]:child:[last-child]:hidden mapCursor'>
           <Map
       zoom={mapZoom}
       center={mapCenter}
@@ -364,6 +482,7 @@ function Geo() {
         setMapCenter(ev.detail.center);
         setMapZoom(ev.detail.zoom);
       }}>
+      <MapHelper onMapReady={setMapInstance} />
       {/* Show guess marker (red) and actual location marker (green) in results mode */}
       {showResultsMap && lastGuess && (
         <>
@@ -376,20 +495,34 @@ function Geo() {
         </>
       )}
       {/* Show normal guess marker when not in results mode */}
-      {!showResultsMap && marker && (
+      {!showResultsMap && !showFinalResults && marker && (
         <AdvancedMarker position={marker}>
           <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="#DC2626" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-map-pin-icon lucide-map-pin"><path d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0"/><circle cx="12" cy="10" r="3"/></svg>
         </AdvancedMarker>
       )}
+      {showFinalResults && playerGuesses.map((guess, index) => (
+          <AdvancedMarker position={guess} key={'guess' + index}>
+            <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="#DC2626" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-map-pin-icon lucide-map-pin"><path d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0"/><circle cx="12" cy="10" r="3"/></svg>
+            <p className='absolute -translate-y-16 translate-x-7 px-2 font-bold bg-white text-black text-lg rounded-full z-50'>{index + 1}</p>
+            </AdvancedMarker>
+          ))}
+      {showFinalResults && correctGuesses.map((correct, index) => (
+            <AdvancedMarker position={correct} key={'correct' + index}>
+              <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="#16A34A" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-map-pin-check-inside-icon lucide-map-pin-check-inside"><path d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0"/><path d="m9 10 2 2 4-4"/></svg>
+            <p className='absolute -translate-y-16 translate-x-7 px-2 font-bold bg-white text-black text-lg rounded-full z-50'>{index + 1}</p>
+            </AdvancedMarker>
+          ))
+      }
    </Map>
    </div>
         </APIProvider>
         {/* zoom buttons */}
-        {expanded === 0 ?
-        <button className='absolute top-0 left-0 bg-gray-500 bg-opacity-40 text-white  px-2 rounded text-2xl' onClick={expandMap} disabled={showResultsMap}>
-          +
-        </button> : ''}
-        {expanded === 1 ? (
+        {expanded === 0 && !showResultsMap && !showFinalResults ? (
+          <button className='absolute top-0 left-0 bg-gray-500 bg-opacity-40 text-white  px-2 rounded text-2xl' onClick={expandMap} disabled={showResultsMap}>
+            +
+          </button>
+        ) : ''}
+        {expanded === 1 && !showResultsMap && !showFinalResults ? (
           <div className='flex absolute top-0 left-0'>
           <button className=' bg-gray-500 bg-opacity-40 text-white  px-2 rounded text-2xl' onClick={expandMap} disabled={showResultsMap}>
           +
@@ -399,11 +532,11 @@ function Geo() {
         </button>
         </div>
         ) : ''}
-        {expanded === 2 ?
+        {expanded === 2 && !showResultsMap && !showFinalResults ?
         <button className='absolute top-0 left-0 bg-gray-500 bg-opacity-40 text-white  px-2 rounded text-2xl' onClick={expandMap} disabled={showResultsMap}>
           -
         </button> : ''}
-        {!showResultsMap ? (
+        {!showResultsMap && !showFinalResults ? (
           <button 
             className='absolute bottom-0 left-0 bg-green-500 text-white p-1 rounded text-xl ring-2 ring-white disabled:bg-gray-500 disabled:text-gray-400' 
             onClick={() => submitGuess()}
@@ -413,10 +546,10 @@ function Geo() {
           </button>
         ) : (
           <button 
-            className='absolute bottom-0 left-0 bg-blue-500 text-white p-1 rounded text-2xl ring-2 ring-white animate-pulse translate-x-4 -translate-y-4' 
+            className='absolute bottom-0 block bg-blue-500 text-white p-1 rounded text-2xl ring-2 ring-white animate-pulse -translate-y-4' 
             onClick={() => nextRound()}
           >
-            Next Round
+            { roundNumber >= 5 ? 'Finish' : 'Next Round' }
           </button>
         )}
       </div>
