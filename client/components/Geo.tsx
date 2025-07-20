@@ -24,6 +24,8 @@ function Geo() {
   const [scoreAlert, setScoreAlert] = useState('');
   const [currentHeading, setCurrentHeading] = useState(0);
   const [distanceDisplay, setDistanceDisplay] = useState(0);
+  const [gameStarted, setGameStarted] = useState(false);
+  const [roundNumber, setRoundNumber] = useState(1);
 
   const getRandomCoordinates = () => {
     // Generate random latitude between -85 and 85 (avoiding extreme poles)
@@ -285,14 +287,30 @@ function Geo() {
         </div>
       )}
 
+      {!gameStarted && (
+        <div className='absolute top-0 left-0 z-20 h-screen w-full bg-blue-500 flex items-center justify-center'>
+          <div className='text-white text-2xl flex flex-col items-center gap-4'>
+            <h2 className='text-6xl font-bold mb-4'>Geo Guessing Game</h2>
+            <p className='text-xl mb-8'>Guess the location based on the street view!</p>
+            <p className='text-lg mb-4'>Score points based on how close your guess is to the actual location.</p>
+            <p className='text-lg mb-4'>There are 5 rounds</p>
+          <button onClick={() => setGameStarted(true)}
+            className="p-1 ring-2 ring-white rounded-lg z-40 items-center justify-center bg-gray-500 bg-opacity-60"
+          >Start Game</button>
+          </div>
+        </div>
+      )}
+      
+
       {/* restart button */}
+      {gameStarted && (
       <button onClick={() => initialize()}
         className="absolute bottom-32 left-6 p-1 ring-2 ring-white rounded-lg z-40 items-center justify-center bg-gray-500 bg-opacity-60"
       ><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-rotate-ccw-icon lucide-rotate-ccw inline"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
-        Start</button>
+        Start</button>)}
       
       {/* Custom Compass - only show when location is loaded */}
-      {currentLocation && (
+      {currentLocation && gameStarted && (
         <div className='absolute bottom-8 left-4 z-30 w-20 h-20 bg-black bg-opacity-60 rounded-full flex items-center justify-center border-2 border-white'>
           <div className='relative w-16 h-16'>
             {/* Compass circle */}
@@ -318,6 +336,7 @@ function Geo() {
       ></div>
       
       {/* Regular Map */}
+      { gameStarted && (
       <div 
         className="dark:bg-black dark:text-white bg-white text-black absolute bottom-0 right-0 z-40" 
         style={{ width: mapSize.width, height: mapSize.height }}
@@ -401,7 +420,9 @@ function Geo() {
           </button>
         )}
       </div>
+      )}
       </div>
+      
   )
 }
 
