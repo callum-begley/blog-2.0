@@ -338,11 +338,18 @@ function Geo() {
   const nextRound = () => {
     setRoundNumber((prev) => prev + 1);
     console.log('Round:', roundNumber);
-    if (roundNumber >= 5) {
+    if (roundNumber == 5) {
       endGame();
       console.log('Game Over! Final Score:', score);
       return;
     } 
+    if (roundNumber > 5) {
+      setRoundNumber(1);
+      setScore(0);
+      setPlayerGuesses([]);
+      setCorrectGuesses([]);
+      setShowFinalResults(false);
+    }
 
     // Reset everything for next round
     setShowResultsMap(false);
@@ -374,7 +381,6 @@ function Geo() {
     setLastGuess(null);
     setMapCenter({ lat: 0, lng: 0 });
     setMapZoom(3);
-    setRoundNumber(1);
     setScoreAlert('')
     setMarker(null);
   };
