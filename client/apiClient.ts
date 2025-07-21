@@ -1,5 +1,5 @@
 import request from 'superagent'
-import { Data } from './models/types'
+import { Data, MapsData } from './models/types'
 
 const rootURL = new URL('/api/v1', document.baseURI)
 
@@ -7,3 +7,10 @@ export async function getQuiz(topic: string, diff: string): Promise<Data> {
   const res = await request.get(`${rootURL}/quiz`).query('topic=' + topic + 'difficulty=' + diff)
   return res.body.quiz as Data
 }
+
+export async function getLocations(location: string, theme: string): Promise<MapsData> {
+  const res = await request.get(`${rootURL}/maps`).query('location=' + location + 'theme=' + theme)
+  console.log('api', res.body)
+  return res.body.locations as MapsData
+}
+

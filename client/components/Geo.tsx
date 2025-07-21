@@ -1,5 +1,8 @@
 import { useState, useEffect, useCallback } from 'react'
 import {APIProvider, Map, MapCameraChangedEvent, AdvancedMarker, MapMouseEvent, useMap} from '@vis.gl/react-google-maps';
+import { MapsData } from '../models/types';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { getLocations } from '../apiClient';
 
 
 declare global {
@@ -44,6 +47,24 @@ function Geo() {
   const [showFinalResults, setShowFinalResults] = useState(false);
   const [finalPolylines, setFinalPolylines] = useState<google.maps.Polyline[]>([]);
   const [mapInstance, setMapInstance] = useState<google.maps.Map | null>(null);
+  const [location, setLocation] = useState('Anywhere');
+  const [theme, setTheme] = useState('Random');
+  const [isAI, setIsAI] = useState(false);
+  const [aiLocations, setAiLocations] = useState<Array<{lat: number, lng: number}>>([]);
+  const [currentAiLocationIndex, setCurrentAiLocationIndex] = useState(0);
+  const queryClient = useQueryClient();
+
+  const { data, isError, isFetching, refetch } = useQuery({
+    queryKey: ['maps'],
+    queryFn: async () => {
+      const data: MapsData = await getLocations(location, theme)
+      return data
+    },
+    enabled: false,
+    staleTime: 0,
+  })
+  if (isError) console.log('error loading')
+
 
   const getRandomCoordinates = () => {
     // Generate random latitude between -85 and 85 (avoiding extreme poles)
@@ -234,9 +255,9 @@ function Geo() {
 
   useEffect(() => {
     // Initialize when both maps are loaded and we have a current location
-    if (mapsLoaded) {
+    if (mapsLoaded && !isAI) {
       if (!hasLoadedInitialLocation) {
-        // Load random location on first load
+        // Load random location on first load (only for non-AI games)
         loadRandomLocation();
         setHasLoadedInitialLocation(true);
       } else {
@@ -244,7 +265,7 @@ function Geo() {
         initialize();
       }
     }
-  }, [initialize, mapsLoaded, hasLoadedInitialLocation, loadRandomLocation]);
+  }, [initialize, mapsLoaded, hasLoadedInitialLocation, loadRandomLocation, isAI]);
 
     // Effect to create polylines for final results
   useEffect(() => {
@@ -317,8 +338,6 @@ function Geo() {
       else if (distance > 10000) zoom = 10;   // > 10km
       else zoom = 12;                         // < 10km
 
-      console.log('d&z', distance, zoom)
-
       setScoreAlert('+ ' + Math.max(0, 100 - Math.floor(Math.sqrt(distance) / 20)) + ' POINTS');
       setScore((prevScore) => prevScore + Math.max(0, 100 - Math.floor(Math.sqrt(distance) / 20))); // Simple scoring based on distance
       setMapZoom(zoom);
@@ -327,8 +346,6 @@ function Geo() {
       setMapSize({width: '100%', height: '100%'});
       setPlayerGuesses((prev) => [...prev, marker]);
       setCorrectGuesses((prev) => [...prev, currentLocation]);
-      console.log('Player guesses:', playerGuesses); 
-      console.log('Correct guesses:', correctGuesses);
     }
     
     // Clear the marker
@@ -338,17 +355,22 @@ function Geo() {
   const nextRound = () => {
     setRoundNumber((prev) => prev + 1);
     console.log('Round:', roundNumber);
+    
     if (roundNumber == 5) {
       endGame();
       console.log('Game Over! Final Score:', score);
       return;
     } 
+    
     if (roundNumber > 5) {
       setRoundNumber(1);
       setScore(0);
       setPlayerGuesses([]);
       setCorrectGuesses([]);
       setShowFinalResults(false);
+      setIsAI(false);
+      setAiLocations([]);
+      setCurrentAiLocationIndex(0);
     }
 
     // Reset everything for next round
@@ -360,8 +382,13 @@ function Geo() {
     setMapSize({width: '400px', height: '300px'});
     setScoreAlert('')
     setMarker(null);
-    // Load new random location
-    loadRandomLocation();
+    
+    // Load next location based on game type
+    if (isAI) {
+      loadNextAILocation();
+    } else {
+      loadRandomLocation();
+    }
   };
 
   const startGame = () => {
@@ -371,6 +398,40 @@ function Geo() {
     setPlayerGuesses([]);
     setCorrectGuesses([]);
     loadRandomLocation();
+  };
+
+  const startAIGame = () => {
+    setGameStarted(true);
+    setIsAI(true);
+    setRoundNumber(1);
+    setScore(0);
+    setPlayerGuesses([]);
+    setCorrectGuesses([]);
+    
+    // Function to check if Google Maps is fully loaded
+    const checkGoogleMapsReady = () => {
+      return window.google && 
+             window.google.maps && 
+             window.google.maps.Geocoder && 
+             window.google.maps.StreetViewPanorama;
+    };
+    
+    // Try to load AI locations with retries
+    const attemptLoadAILocations = (retries = 5) => {
+      if (checkGoogleMapsReady()) {
+        console.log('Google Maps ready, loading AI locations...');
+        loadAILocations();
+      } else if (retries > 0) {
+        console.log(`Google Maps not ready, retrying in 500ms... (${retries} attempts left)`);
+        setTimeout(() => attemptLoadAILocations(retries - 1), 500);
+      } else {
+        console.error('Google Maps failed to load after multiple attempts, falling back to random location');
+        setIsAI(false); // Reset AI flag since we're falling back
+        loadRandomLocation();
+      }
+    };
+    
+    attemptLoadAILocations();
   };
 
   const endGame = () => {
@@ -385,18 +446,215 @@ function Geo() {
     setMarker(null);
   };
 
+  const restartGame = () => {
+    setGameStarted(false);
+    setRoundNumber(1);
+    setScore(0);
+    setPlayerGuesses([]);
+    setCorrectGuesses([]);
+    setShowFinalResults(false);
+    setIsAI(false);
+    setAiLocations([]);
+    setCurrentAiLocationIndex(0);
+    setShowResultsMap(false);
+    setLastGuess(null);
+    setMapCenter({ lat: 0, lng: 0 });
+    setMapZoom(1);
+    setExpanded(0);
+    setMapSize({width: '400px', height: '300px'});
+    setMarker(null);
+    setLocation('Anywhere');
+    setTheme('Random');
+    setCurrentLocation(null);
+    setCurrentHeading(0);
+    setIsLoading(false);
+    setMapsLoaded(false);
+    setHasLoadedInitialLocation(false);
+    setDistanceDisplay(0);
+  };
+
+  const handleTheme = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setTheme(event.target.value);
+    // Clear cached data when theme changes
+    queryClient.removeQueries({ queryKey: ['maps'] });
+  }
+
+  const handleLocation = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setLocation(event.target.value);
+    // Clear cached data when location changes  
+    queryClient.removeQueries({ queryKey: ['maps'] });
+  }
+
+  interface HandleSubmitEvent extends React.MouseEvent<HTMLButtonElement> {
+    preventDefault: () => void;
+  }
+
+  const handleSubmit = (event: HandleSubmitEvent): void => {
+    event.preventDefault();
+    // Clear any existing data before refetching
+    queryClient.invalidateQueries({ queryKey: ['maps'] });
+    refetch();
+  };
+
+  console.log('Maps data:', data);
+
+  const loadAILocations = useCallback(() => {
+    if (!window.google || !window.google.maps || !window.google.maps.Geocoder) {
+      console.error('Google Maps API components not fully loaded yet');
+      // Fallback to random location
+      setIsAI(false);
+      loadRandomLocation();
+      return;
+    }
+
+    if (data && data.locations) {
+      console.log('Starting to geocode AI locations:', data.locations);
+      setIsLoading(true);
+      
+      // Use Google's Geocoding service to convert addresses to coordinates
+      const geocoder = new google.maps.Geocoder();
+      const locationPromises = data.locations.map((location, index) => {
+        return new Promise<{lat: number, lng: number}>((resolve, reject) => {
+          // Add a delay for ALL requests, including the first one
+          setTimeout(() => {
+            geocoder.geocode({ address: location.location }, (results, status) => {
+              if (status === 'OK' && results?.[0]) {
+                const latLng = results[0].geometry.location;
+                console.log(`Successfully geocoded location ${index + 1}: ${location.location}`);
+                resolve({
+                  lat: latLng.lat(),
+                  lng: latLng.lng()
+                });
+              } else {
+                console.error('Geocoding failed for:', location.location, status);
+                reject(new Error(`Geocoding failed for ${location.location}: ${status}`));
+              }
+            });
+          }, (index + 1) * 300); // Start from 300ms, then 600ms, 900ms, etc.
+        });
+      });
+
+      // Wait for all addresses to be geocoded
+      Promise.all(locationPromises)
+        .then(coordinates => {
+          console.log('Successfully geocoded AI locations:', coordinates);
+          setAiLocations(coordinates);
+          setCurrentAiLocationIndex(0);
+          
+          // Load the first AI location
+          if (coordinates.length > 0) {
+            setCurrentLocation(coordinates[0]);
+            
+            // Initialize the panorama with the first AI location
+            setTimeout(() => {
+              const panorama = new google.maps.StreetViewPanorama(
+                document.getElementById("pano") as HTMLElement,
+                {
+                  position: coordinates[0],
+                  pov: {
+                    heading: Math.random() * 360,
+                    pitch: Math.random() * 40 - 20,
+                  },
+                  enableCloseButton: false,
+                  addressControl: false,
+                  fullscreenControl: false,
+                  motionTrackingControl: false,
+                  panControl: false,
+                  zoomControl: false,
+                  linksControl: false,
+                  showRoadLabels: false,
+                  visible: true,
+                  clickToGo: true,
+                  scrollwheel: true,
+                  compassControl: false,
+                  gestureHandling: 'passive',
+                } as google.maps.StreetViewPanoramaOptions & { compassControl: boolean }
+              );
+
+              panorama.addListener('pov_changed', () => {
+                const pov = panorama.getPov();
+                setCurrentHeading(pov.heading || 0);
+              });
+
+              setCurrentHeading(panorama.getPov().heading || 0);
+              setIsLoading(false);
+            }, 1000);
+          }
+        })
+        .catch(error => {
+          console.error('Error geocoding AI locations:', error);
+          setIsLoading(false);
+          setIsAI(false); // Reset AI flag since we're falling back
+          // Fallback to random location if geocoding fails
+          loadRandomLocation();
+        });
+    } else {
+      console.log('No AI locations data available, loading random location');
+      setIsAI(false);
+      loadRandomLocation();
+    }
+  }, [data, loadRandomLocation]);
+
+  const loadNextAILocation = useCallback(() => {
+    if (!isAI || !aiLocations.length) return;
+    
+    const nextIndex = currentAiLocationIndex + 1;
+    
+    if (nextIndex < aiLocations.length) {
+      setCurrentAiLocationIndex(nextIndex);
+      const nextLocation = aiLocations[nextIndex];
+      setCurrentLocation(nextLocation);
+      setIsLoading(true);
+      
+      // Update panorama with next AI location
+      setTimeout(() => {
+        const panorama = new google.maps.StreetViewPanorama(
+          document.getElementById("pano") as HTMLElement,
+          {
+            position: nextLocation,
+            pov: {
+              heading: Math.random() * 360,
+              pitch: Math.random() * 40 - 20,
+            },
+            enableCloseButton: false,
+            addressControl: false,
+            fullscreenControl: false,
+            motionTrackingControl: false,
+            panControl: false,
+            zoomControl: false,
+            linksControl: false,
+            showRoadLabels: false,
+            visible: true,
+            clickToGo: true,
+            scrollwheel: true,
+            compassControl: false,
+            gestureHandling: 'passive',
+          } as google.maps.StreetViewPanoramaOptions & { compassControl: boolean }
+        );
+
+        panorama.addListener('pov_changed', () => {
+          const pov = panorama.getPov();
+          setCurrentHeading(pov.heading || 0);
+        });
+
+        setCurrentHeading(panorama.getPov().heading || 0);
+        setIsLoading(false);
+      }, 1000);
+    }
+  }, [isAI, aiLocations, currentAiLocationIndex]);
+
   return (
     <div className='h-screen w-full'>
       { gameStarted && !showFinalResults && <p className='absolute top-0 left-0 p-2 z-50 bg-blue-500 rounded-lg ring-2 ring-white text-white text-2xl translate-x-4 translate-y-4 '>Score: {score}</p> }
       { gameStarted && !showFinalResults && <p className='absolute top-0 right-0 p-2 z-50 bg-blue-500 rounded-lg ring-2 ring-white text-white text-2xl -translate-x-4 translate-y-4 '>Round: {roundNumber}</p> }
-      {showResultsMap ? <p className='absolute top-8 left-[50%] p-2 z-50 bg-green-500 rounded-lg ring-2 ring-white text-white text-4xl font-semibold -translate-x-[50%]'>{scoreAlert}<div className='text-xl text-center'>{distanceDisplay} KM AWAY</div></p> : ''}
+      {showResultsMap ? <div className='absolute top-8 left-[50%] p-2 z-50 bg-green-500 rounded-lg ring-2 ring-white text-white text-4xl font-semibold -translate-x-[50%]'>{scoreAlert}<div className='text-xl text-center'>{distanceDisplay} KM AWAY</div></div> : ''}
 
       {/* Show loading/black screen when no location is loaded or loading */}
       {(!currentLocation || isLoading) && (
         <div className='absolute top-0 left-0 z-20 h-screen w-full bg-black flex items-center justify-center'>
           <div className='text-white text-2xl flex flex-col items-center gap-4'>
             <div className='animate-spin rounded-full h-16 w-16 border-b-2 border-white'></div>
-            <div>{isLoading ? 'Loading next location...' : 'Loading random location...'}</div>
+            <div>{isLoading ? 'Loading next location...' : 'Loading location...'}</div>
           </div>
         </div>
       )}
@@ -413,8 +671,47 @@ function Geo() {
             <p className='text-lg mb-4'>Score points based on how close your guess is to the actual location.</p>
             <p className='text-lg mb-8'>There are 5 rounds, each with a different location to guess.</p>
           <button onClick={() => startGame()}
-            className="p-4 ring-2 ring-white rounded-full z-40 items-center justify-center hover:bg-white hover:bg-opacity-30 transition-colors duration-300 text-white text-2xl font-semibold"
-          >Start Game</button>
+            className="p-4 ring-2 ring-white rounded-full z-40 items-center justify-center bg-gradient-to-bl from-lime-400 to-green-600 hover:bg-white hover:bg-opacity-30 transition-colors duration-300 text-white text-2xl font-semibold"
+          >Start Random Game</button>
+
+        <p className='text-xl mb-4 mt-8'>Or try an AI generated set of locations:</p>
+        <form id="input" className='justify-center items-center'>
+          <label className='text-xl'>Location: 
+          <input
+            onChange={handleLocation}
+            value={location}
+            type="text"
+            name='input'
+            className='text-black ring-blue-400  ring-2 rounded-md p-2 m-2 bg-white'
+          /></label>
+          <label className='text-xl'>Theme: 
+          <input
+            onChange={handleTheme}
+            value={theme}
+            type="text"
+            name='input'
+            className='text-black ring-blue-400 ring-2 rounded-md p-2 m-2 bg-white'
+          /></label>
+          <div className="place-self-center m-10">
+          { !data && <button className={`bg-gradient-to-bl from-lime-400 to-green-600 font-medium text-2xl rounded-full p-4 ring-white ring-2 m-10 flex items-center gap-3`}
+            onClick={handleSubmit}
+            disabled={ isFetching }>
+            { isFetching && (
+              <svg className="animate-spin h-6 w-6 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+              </svg>
+            )}
+            { isFetching ? 'Generating...' : 'Generate' }
+          </button> }
+          { data && 
+          <button className={`bg-gradient-to-bl from-lime-400 to-green-600 font-medium text-2xl rounded-full p-4 ring-white ring-2`}
+            onClick={startAIGame}
+            disabled={ isFetching }>
+            Start AI Game
+          </button>}
+        </div>
+        </form>
           </div>
         </div>
       )}
@@ -544,22 +841,30 @@ function Geo() {
         </button> : ''}
         {!showResultsMap && !showFinalResults ? (
           <button 
-            className='absolute bottom-1 left-1 bg-green-500 text-white px-3 rounded-full text-xl ring-2 ring-white disabled:bg-gray-500 disabled:text-gray-400' 
+            className='absolute bottom-1 left-1 bg-gradient-to-bl from-lime-400 to-green-600 text-white px-3 rounded-full text-xl ring-2 ring-white disabled:bg-gray-500 disabled:text-gray-400' 
             onClick={() => submitGuess()}
             disabled={isLoading || !marker}
           >
             Submit
           </button>
-        ) : (
-          <button 
-            className='absolute bottom-0 block bg-blue-500 text-white p-2 px-4 rounded-full text-3xl ring-2 ring-white animate-pulse -translate-y-3' 
-            onClick={() => nextRound()}
-          >
-            { roundNumber < 5 &&  'Next Round' }
-            { roundNumber === 5 && 'Finish' }
-            { roundNumber > 5 && 'New Game' }
-          </button>
-        )}
+        ) : 
+          (roundNumber <= 5 ? (
+            <button 
+              className='absolute bottom-0 block bg-gradient-to-bl from-sky-400 to-blue-600 text-white p-2 px-4 rounded-full text-3xl ring-2 ring-white animate-pulse -translate-y-3' 
+              onClick={() => nextRound()}
+            >
+              { roundNumber < 5 &&  'Next Round' }
+              { roundNumber === 5 && 'Finish' }
+            </button>
+          ) : (
+            <button 
+              className='absolute bottom-0 block bg-gradient-to-bl from-sky-400 to-blue-600 text-white p-2 px-4 rounded-full text-3xl ring-2 ring-white animate-pulse -translate-y-3' 
+              onClick={() => restartGame()}
+            >
+              End Game
+            </button>
+          ))
+      }
       </div>
       )}
       </div>

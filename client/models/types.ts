@@ -27,3 +27,11 @@ export interface Content {
 export interface Part {
     text: string
 }
+
+export interface MapsData {
+    locations: Location[];
+}
+
+export interface Location {
+    location: string[];
+}
