@@ -387,10 +387,10 @@ function Geo() {
 
   return (
     <div className='h-screen w-full'>
-      { gameStarted && !showFinalResults && <p className='absolute top-0 left-0 p-2 z-50 bg-blue-500 rounded-lg ring-2 ring-white text-white text-2xl translate-x-1 translate-y-1 '>Score: {score}</p> }
-      { gameStarted && !showFinalResults && <p className='absolute top-0 right-0 p-2 z-50 bg-blue-500 rounded-lg ring-2 ring-white text-white text-2xl -translate-x-1 translate-y-1 '>Round: {roundNumber}</p> }
-      {showResultsMap ? <p className='absolute top-2 left-[50%] p-2 z-50 bg-green-500 rounded-lg ring-2 ring-white text-white text-4xl font-semibold -translate-x-[50%]'>{scoreAlert}<p className='text-xl text-center'>{distanceDisplay} KM AWAY</p></p> : ''}
-      
+      { gameStarted && !showFinalResults && <p className='absolute top-0 left-0 p-2 z-50 bg-blue-500 rounded-lg ring-2 ring-white text-white text-2xl translate-x-4 translate-y-4 '>Score: {score}</p> }
+      { gameStarted && !showFinalResults && <p className='absolute top-0 right-0 p-2 z-50 bg-blue-500 rounded-lg ring-2 ring-white text-white text-2xl -translate-x-4 translate-y-4 '>Round: {roundNumber}</p> }
+      {showResultsMap ? <p className='absolute top-8 left-[50%] p-2 z-50 bg-green-500 rounded-lg ring-2 ring-white text-white text-4xl font-semibold -translate-x-[50%]'>{scoreAlert}<div className='text-xl text-center'>{distanceDisplay} KM AWAY</div></p> : ''}
+
       {/* Show loading/black screen when no location is loaded or loading */}
       {(!currentLocation || isLoading) && (
         <div className='absolute top-0 left-0 z-20 h-screen w-full bg-black flex items-center justify-center'>
@@ -408,12 +408,12 @@ function Geo() {
         }}
         >
           <div className='text-white text-2xl flex flex-col items-center gap-4'>
-            <h2 className='text-6xl font-bold mb-4'>Geo Guessing Game</h2>
-            <p className='text-xl mb-8'>Guess the location based on the street view image!</p>
+            <h2 className='text-6xl font-bold mb-8'>Geo Guessing Game</h2>
+            <p className='text-xl mb-4'>Guess the location based on the street view image!</p>
             <p className='text-lg mb-4'>Score points based on how close your guess is to the actual location.</p>
-            <p className='text-lg mb-4'>There are 5 rounds, each with a different location to guess.</p>
+            <p className='text-lg mb-8'>There are 5 rounds, each with a different location to guess.</p>
           <button onClick={() => startGame()}
-            className="p-4 ring-2 ring-white rounded-lg z-40 items-center justify-center"
+            className="p-4 ring-2 ring-white rounded-full z-40 items-center justify-center hover:bg-white hover:bg-opacity-30 transition-colors duration-300 text-white text-2xl font-semibold"
           >Start Game</button>
           </div>
         </div>
@@ -468,7 +468,7 @@ function Geo() {
         <APIProvider apiKey={import.meta.env.VITE_MAPS_API_KEY || ''} onLoad={() => {
           setMapsLoaded(true);
         }}>
-          <div className='relative h-full w-full [&_.gm-style-cc]:hidden [&_.gm-style]:child:[last-child]:hidden mapCursor'>
+          <div className={`relative h-full w-full [&_.gm-style-cc]:hidden [&_.gm-style]:child:[last-child]:hidden mapCursor ${showResultsMap || showFinalResults? ' rounded-[5rem] overflow-hidden ring-2 ring-white' : ''}`}>
           <Map
       zoom={mapZoom}
       center={mapCenter}
@@ -544,7 +544,7 @@ function Geo() {
         </button> : ''}
         {!showResultsMap && !showFinalResults ? (
           <button 
-            className='absolute bottom-0 left-0 bg-green-500 text-white p-1 rounded text-xl ring-2 ring-white disabled:bg-gray-500 disabled:text-gray-400' 
+            className='absolute bottom-1 left-1 bg-green-500 text-white px-3 rounded-full text-xl ring-2 ring-white disabled:bg-gray-500 disabled:text-gray-400' 
             onClick={() => submitGuess()}
             disabled={isLoading || !marker}
           >
@@ -552,7 +552,7 @@ function Geo() {
           </button>
         ) : (
           <button 
-            className='absolute bottom-0 block bg-blue-500 text-white p-1 rounded text-2xl ring-2 ring-white animate-pulse -translate-y-4' 
+            className='absolute bottom-0 block bg-blue-500 text-white p-2 px-4 rounded-full text-3xl ring-2 ring-white animate-pulse -translate-y-3' 
             onClick={() => nextRound()}
           >
             { roundNumber < 5 &&  'Next Round' }

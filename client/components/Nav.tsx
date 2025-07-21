@@ -1,13 +1,16 @@
 import { Link } from "react-router-dom"
+import { useLocation } from "react-router-dom"
 import Hamburger from "hamburger-react"
 import { useState } from "react"
 import { HashLink } from "react-router-hash-link"
 
 function Nav() {
   const [open, setOpen] = useState(false)
+  const location = useLocation();
+  const isGeoPage = location.pathname === '/Geo';
 
   return (
-    <div className= 'text-white fixed sm:top-10 p-4 w-12 h-12'>
+    <div className={`text-white sm:top-10 p-4 w-12 h-12 ${isGeoPage ? 'absolute' : 'fixed'}`}>
       <div className="text-xl bg-zinc-600 rounded-full hover:bg-zinc-400 h-12 w-12 z-50 transition duration-500 ease-in-out hover:scale-110 opacity-40 hover:opacity-100 ring-2 ring-white ">
       <Hamburger size={24} toggled={open} toggle={setOpen} />
       </div>
