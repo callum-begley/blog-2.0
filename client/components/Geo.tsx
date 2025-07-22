@@ -499,8 +499,6 @@ function Geo() {
     refetch();
   };
 
-  console.log('Maps data:', data);
-
   const loadAILocations = useCallback(() => {
     if (!window.google || !window.google.maps || !window.google.maps.Geocoder) {
       console.error('Google Maps API components not fully loaded yet');
@@ -667,7 +665,7 @@ function Geo() {
 
         return () => clearInterval(interval);
       }
-    }, [userHasTyped]);
+    }, [userHasTyped, gameStarted]);
 
   return (
     <div className='h-screen w-full'>
