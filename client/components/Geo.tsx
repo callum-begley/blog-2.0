@@ -99,8 +99,9 @@ function Geo() {
       return new Promise((resolve) => {
         streetViewService.getPanorama({
           location: randomCoords,
-          radius: 50000, // 50km radius to find nearby street view
-          source: google.maps.StreetViewSource.OUTDOOR
+          radius: 1000,
+          source: google.maps.StreetViewSource.GOOGLE,
+          preference: google.maps.StreetViewPreference.BEST
         }, (data, status) => {
           if (status === google.maps.StreetViewStatus.OK && data?.location?.latLng) {
             const lat = data.location.latLng.lat();
@@ -218,7 +219,8 @@ function Geo() {
           scrollwheel: true,
           compassControl: false,
           gestureHandling: 'passive',
-        } as google.maps.StreetViewPanoramaOptions & { compassControl: boolean }
+          source: google.maps.StreetViewSource.GOOGLE,
+        } as google.maps.StreetViewPanoramaOptions & { compassControl: boolean, source: google.maps.StreetViewSource }
       );
 
       // Add listener for pov changes to track heading
@@ -465,13 +467,16 @@ function Geo() {
     setMapSize({width: '400px', height: '300px'});
     setMarker(null);
     setLocation('Anywhere');
-    setTheme('Random');
+    setTheme('');
     setCurrentLocation(null);
     setCurrentHeading(0);
     setIsLoading(false);
     setMapsLoaded(false);
     setHasLoadedInitialLocation(false);
     setDistanceDisplay(0);
+    setUserHasTyped(false);
+    queryClient.removeQueries({ queryKey: ['maps'] });
+
   };
 
   const handleTheme = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -518,7 +523,7 @@ function Geo() {
         return new Promise<{lat: number, lng: number}>((resolve, reject) => {
           // Add a delay for ALL requests, including the first one
           setTimeout(() => {
-            geocoder.geocode({ address: location.location }, (results, status) => {
+            geocoder.geocode({ address: String(location.location) }, (results, status) => {
               if (status === 'OK' && results?.[0]) {
                 const latLng = results[0].geometry.location;
                 console.log(`Successfully geocoded location ${index + 1}: ${location.location}`);
@@ -569,7 +574,8 @@ function Geo() {
                   scrollwheel: true,
                   compassControl: false,
                   gestureHandling: 'passive',
-                } as google.maps.StreetViewPanoramaOptions & { compassControl: boolean }
+                  source: google.maps.StreetViewSource.GOOGLE,
+                } as google.maps.StreetViewPanoramaOptions & { compassControl: boolean, source: google.maps.StreetViewSource }
               );
 
               panorama.addListener('pov_changed', () => {
@@ -630,7 +636,8 @@ function Geo() {
             scrollwheel: true,
             compassControl: false,
             gestureHandling: 'passive',
-          } as google.maps.StreetViewPanoramaOptions & { compassControl: boolean }
+            source: google.maps.StreetViewSource.GOOGLE,
+          } as google.maps.StreetViewPanoramaOptions & { compassControl: boolean, source: google.maps.StreetViewSource }
         );
 
         panorama.addListener('pov_changed', () => {
@@ -655,7 +662,7 @@ function Geo() {
 
     useEffect(() => {
       if (!userHasTyped) {
-        const themeArray = ['Nature', 'Urban', 'Historical', 'Beaches', 'Mountains', 'Desert', 'Rural', 'Restaurants', 'Bridges'];
+        const themeArray = ['Nature?', 'Urban?', 'Historical?', 'Beach?', 'Mountains?', 'Desert?', 'Rural?', 'Restaurants?', 'Bridges?'];
         let currentIndex = 0;
         
         const interval = setInterval(() => {
@@ -727,7 +734,7 @@ function Geo() {
                 <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
               </svg>
             )}
-            { isFetching ? 'Generating...' : 'Generate' }
+            { isFetching ? 'Generating' : 'Generate' }
           </button> }
           { data && 
           <button className={`bg-gradient-to-bl from-lime-400 to-green-600 font-medium text-2xl rounded-full p-4 ring-white ring-2`}
