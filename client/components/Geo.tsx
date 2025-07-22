@@ -48,7 +48,7 @@ function Geo() {
   const [finalPolylines, setFinalPolylines] = useState<google.maps.Polyline[]>([]);
   const [mapInstance, setMapInstance] = useState<google.maps.Map | null>(null);
   const [location, setLocation] = useState('Anywhere');
-  const [theme, setTheme] = useState('Random');
+  const [theme, setTheme] = useState('');
   const [isAI, setIsAI] = useState(false);
   const [aiLocations, setAiLocations] = useState<Array<{lat: number, lng: number}>>([]);
   const [currentAiLocationIndex, setCurrentAiLocationIndex] = useState(0);
@@ -475,7 +475,9 @@ function Geo() {
   };
 
   const handleTheme = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setTheme(event.target.value);
+    const value = event.target.value;
+    setTheme(value);
+    setUserHasTyped(true); // Stop the scrolling when user types
     // Clear cached data when theme changes
     queryClient.removeQueries({ queryKey: ['maps'] });
   }
@@ -650,6 +652,23 @@ function Geo() {
       }
     }, []);
 
+    const [themeScroll, setThemeScroll] = useState('Nature');
+    const [userHasTyped, setUserHasTyped] = useState(false);
+
+    useEffect(() => {
+      if (!userHasTyped) {
+        const themeArray = ['Nature', 'Urban', 'Historical', 'Beaches', 'Mountains', 'Desert', 'Rural', 'Restaurants', 'Bridges'];
+        let currentIndex = 0;
+        
+        const interval = setInterval(() => {
+          currentIndex = (currentIndex + 1) % themeArray.length;
+          setThemeScroll(themeArray[currentIndex]);
+        }, 2000);
+
+        return () => clearInterval(interval);
+      }
+    }, [userHasTyped]);
+
   return (
     <div className='h-screen w-full'>
       { gameStarted && !showFinalResults && <p className='absolute top-0 left-0 p-2 z-50 bg-blue-500 rounded-lg ring-2 ring-white text-white text-2xl translate-x-4 translate-y-4 '>Score: {score}</p> }
@@ -694,10 +713,11 @@ function Geo() {
           <label className='text-xl'>Theme: 
           <input
             onChange={handleTheme}
-            value={theme}
+            value={userHasTyped ? theme : themeScroll}
+            onFocus={() => setUserHasTyped(true)}
             type="text"
             name='input'
-            className='text-black ring-blue-400 ring-2 rounded-md p-2 m-2 bg-white'
+            className={` ring-blue-400 ring-2 rounded-md p-2 m-2 bg-white ${userHasTyped ? 'text-black' : 'text-gray-500'} `}
           /></label>
           <div className="place-self-center m-10">
           { !data && <button className={`bg-gradient-to-bl from-lime-400 to-green-600 font-medium text-2xl rounded-full p-4 ring-white ring-2 m-10 flex items-center gap-3`}
