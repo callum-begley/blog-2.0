@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import {APIProvider, Map, MapCameraChangedEvent, AdvancedMarker, MapMouseEvent, useMap} from '@vis.gl/react-google-maps';
 import { MapsData } from '../models/types';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
@@ -53,6 +53,7 @@ function Geo() {
   const [aiLocations, setAiLocations] = useState<Array<{lat: number, lng: number}>>([]);
   const [currentAiLocationIndex, setCurrentAiLocationIndex] = useState(0);
   const queryClient = useQueryClient();
+  const divRef = useRef<HTMLDivElement>(null);
 
   const { data, isError, isFetching, refetch } = useQuery({
     queryKey: ['maps'],
@@ -643,6 +644,12 @@ function Geo() {
     }
   }, [isAI, aiLocations, currentAiLocationIndex]);
 
+  useEffect(() => {
+      if (divRef.current) {
+        divRef.current.scrollIntoView({ behavior: 'smooth' });
+      }
+    }, []);
+
   return (
     <div className='h-screen w-full'>
       { gameStarted && !showFinalResults && <p className='absolute top-0 left-0 p-2 z-50 bg-blue-500 rounded-lg ring-2 ring-white text-white text-2xl translate-x-4 translate-y-4 '>Score: {score}</p> }
@@ -867,6 +874,7 @@ function Geo() {
       }
       </div>
       )}
+      <div className='bottom-0' ref={divRef}></div>
       </div>
       
   )

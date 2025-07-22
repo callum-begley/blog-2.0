@@ -116,7 +116,7 @@ ENHANCED THEME INTERPRETATION:
 - "random": Choose 5 completely different themes (1 historical, 1 nature, 1 urban, 1 cultural, 1 food)
 
 THEME VALIDATION:
-Before finalizing each address, ask yourself: "Is this location OBVIOUSLY and DIRECTLY related to [THEME]?" If the answer is not a clear YES, choose a different location.
+Before finalizing each address, ask yourself: "Is this location OBVIOUSLY and DIRECTLY related to ${theme}?" If the answer is not a clear YES, choose a different location.
 
 EXAMPLES BY THEME:
 Historical: "Westminster Abbey, 20 Deans Yd, Westminster, London SW1P 3PA, UK"
