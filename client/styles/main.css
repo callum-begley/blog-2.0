@@ -2,6 +2,11 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Optimize touch performance for Street View */
+#pano {
+  touch-action: pan-x pan-y;
+}
+
 .dark:banner {
   background-image: url(/images/matrix-banner.avif);
   background-color: rgba(0, 0, 0, 0.7);

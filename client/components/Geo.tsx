@@ -54,6 +54,7 @@ function Geo() {
   const [currentAiLocationIndex, setCurrentAiLocationIndex] = useState(0);
   const queryClient = useQueryClient();
   const divRef = useRef<HTMLDivElement>(null);
+  const panoramaRef = useRef<google.maps.StreetViewPanorama | null>(null);
 
   const { data, isError, isFetching, refetch } = useQuery({
     queryKey: ['maps'],
@@ -68,14 +69,21 @@ function Geo() {
 
 
   const getRandomCoordinates = () => {
-    // Generate random latitude between -85 and 85 (avoiding extreme poles)
-    const lat = (Math.random() * 170) - 85;
+    // Generate random latitude between -60 and 60 (avoiding extreme poles and Antarctica)
+    // This focuses on areas with better Street View coverage
+    const lat = (Math.random() * 120) - 60;
     // Generate random longitude between -180 and 180
     const lng = (Math.random() * 360) - 180;
     return { lat, lng };
   };
 
-  const findRandomStreetViewLocation = useCallback(async () => {
+  // Helper function to find Street View location with configurable radius
+  const findStreetViewLocation = useCallback(async (
+    coordinates: {lat: number, lng: number}, 
+    radius: number = 50000,
+    maxAttempts: number = 20,
+    useRandom: boolean = false
+  ) => {
     if (!mapsLoaded || !window.google) {
       console.log('Google Maps not loaded yet');
       return null;
@@ -83,41 +91,50 @@ function Geo() {
     
     const streetViewService = new google.maps.StreetViewService();
     let attempts = 0;
-    const maxAttempts = 20; // Limit attempts to avoid infinite loops
 
-    const tryRandomLocation = async (): Promise<{lat: number, lng: number} | null> => {
+    const tryLocation = async (): Promise<{lat: number, lng: number} | null> => {
       if (attempts >= maxAttempts) {
-        console.log('Max attempts reached, using fallback location');
-        return { lat: -20.152288051191736, lng: -67.47815303851836 }; // fallback
-        // Antarctica: -65.1172937, lng: -63.9998866
+        if (useRandom) {
+          console.log('Max attempts reached, using fallback location');
+          return { lat: -20.152288051191736, lng: -67.47815303851836 }; // fallback
+        } else {
+          console.log('Max attempts reached for AI location, returning null');
+          return null;
+        }
       }
       
-
-      const randomCoords = getRandomCoordinates();
+      const searchCoords = useRandom ? getRandomCoordinates() : coordinates;
       attempts++;
+      console.log(`Attempt ${attempts}: Trying coordinates`, searchCoords, `(radius: ${radius}m)`);
 
       return new Promise((resolve) => {
         streetViewService.getPanorama({
-          location: randomCoords,
-          radius: 1000,
+          location: searchCoords,
+          radius: radius,
           source: google.maps.StreetViewSource.GOOGLE,
           preference: google.maps.StreetViewPreference.NEAREST
         }, (data, status) => {
+          console.log(`Attempt ${attempts} result:`, status);
           if (status === google.maps.StreetViewStatus.OK && data?.location?.latLng) {
             const lat = data.location.latLng.lat();
             const lng = data.location.latLng.lng();
-            attempts = 0
+            console.log(`Success! Found Street View at:`, { lat, lng });
             resolve({ lat, lng });
           } else {
-            // Try again with new random coordinates
-            resolve(tryRandomLocation());
+            console.log(`Failed with status: ${status}, trying again...`);
+            // Try again
+            resolve(tryLocation());
           }
         });
       });
     };
 
-    return tryRandomLocation();
+    return tryLocation();
   }, [mapsLoaded]);
+
+  const findRandomStreetViewLocation = useCallback(async () => {
+    return findStreetViewLocation({ lat: 0, lng: 0 }, 50000, 20, true);
+  }, [findStreetViewLocation]);
 
   const handleMapClick = (event: MapMouseEvent) => {
     if (event.detail.latLng) {
@@ -161,10 +178,6 @@ function Geo() {
       document.getElementById("pano") as HTMLElement,
       {
         position: currentLocation,
-        pov: {
-          heading: 34,
-          pitch: 10,
-        },
         enableCloseButton: false,
         addressControl: false,
         fullscreenControl: false,
@@ -180,6 +193,9 @@ function Geo() {
         gestureHandling: 'passive',
       } as google.maps.StreetViewPanoramaOptions & { compassControl: boolean }
     );
+
+    // Store panorama in ref
+    panoramaRef.current = panorama;
 
     // Add listener for pov changes to track heading
     panorama.addListener('pov_changed', () => {
@@ -202,10 +218,6 @@ function Geo() {
         document.getElementById("pano") as HTMLElement,
         {
           position: newLocation,
-          pov: {
-            heading: Math.random() * 360, // Random heading
-            pitch: Math.random() * 40 - 20, // Random pitch between -20 and 20
-          },
           enableCloseButton: false,
           addressControl: false,
           fullscreenControl: false,
@@ -222,6 +234,9 @@ function Geo() {
           source: google.maps.StreetViewSource.GOOGLE,
         } as google.maps.StreetViewPanoramaOptions & { compassControl: boolean, source: google.maps.StreetViewSource }
       );
+
+      // Store panorama in ref
+      panoramaRef.current = panorama;
 
       // Add listener for pov changes to track heading
       panorama.addListener('pov_changed', () => {
@@ -437,6 +452,13 @@ function Geo() {
     attemptLoadAILocations();
   };
 
+  const returnToStart = useCallback(() => {
+    if (!currentLocation || !panoramaRef.current) return;
+    
+    // Reset the panorama to current location with default POV
+    panoramaRef.current.setPosition(currentLocation);
+  }, [currentLocation]);
+
   const endGame = () => {
     setShowFinalResults(true);
     setMapSize({width: '100%', height: '100%'});
@@ -523,14 +545,26 @@ function Geo() {
         return new Promise<{lat: number, lng: number}>((resolve, reject) => {
           // Add a delay for ALL requests, including the first one
           setTimeout(() => {
-            geocoder.geocode({ address: String(location.location) }, (results, status) => {
+            geocoder.geocode({ address: String(location.location) }, async (results, status) => {
               if (status === 'OK' && results?.[0]) {
-                const latLng = results[0].geometry.location;
+                const geocodedLatLng = results[0].geometry.location;
+                const geocodedCoords = {
+                  lat: geocodedLatLng.lat(),
+                  lng: geocodedLatLng.lng()
+                };
                 console.log(`Successfully geocoded location ${index + 1}: ${location.location}`);
-                resolve({
-                  lat: latLng.lat(),
-                  lng: latLng.lng()
-                });
+                
+                // Validate with Street View service using smaller radius for accuracy (5km)
+                const validatedCoords = await findStreetViewLocation(geocodedCoords, 5000, 10, false);
+                
+                if (validatedCoords) {
+                  console.log(`Street View validated location ${index + 1}:`, validatedCoords);
+                  resolve(validatedCoords);
+                } else {
+                  console.log(`No Street View found near location ${index + 1}, using geocoded coordinates`);
+                  // Fall back to geocoded coordinates if no Street View found nearby
+                  resolve(geocodedCoords);
+                }
               } else {
                 console.error('Geocoding failed for:', location.location, status);
                 reject(new Error(`Geocoding failed for ${location.location}: ${status}`));
@@ -540,10 +574,10 @@ function Geo() {
         });
       });
 
-      // Wait for all addresses to be geocoded
+      // Wait for all addresses to be geocoded and validated
       Promise.all(locationPromises)
         .then(coordinates => {
-          console.log('Successfully geocoded AI locations:', coordinates);
+          console.log('Successfully processed AI locations:', coordinates);
           setAiLocations(coordinates);
           setCurrentAiLocationIndex(0);
           
@@ -557,10 +591,6 @@ function Geo() {
                 document.getElementById("pano") as HTMLElement,
                 {
                   position: coordinates[0],
-                  pov: {
-                    heading: Math.random() * 360,
-                    pitch: Math.random() * 40 - 20,
-                  },
                   enableCloseButton: false,
                   addressControl: false,
                   fullscreenControl: false,
@@ -578,6 +608,9 @@ function Geo() {
                 } as google.maps.StreetViewPanoramaOptions & { compassControl: boolean, source: google.maps.StreetViewSource }
               );
 
+              // Store panorama in ref
+              panoramaRef.current = panorama;
+
               panorama.addListener('pov_changed', () => {
                 const pov = panorama.getPov();
                 setCurrentHeading(pov.heading || 0);
@@ -589,7 +622,7 @@ function Geo() {
           }
         })
         .catch(error => {
-          console.error('Error geocoding AI locations:', error);
+          console.error('Error processing AI locations:', error);
           setIsLoading(false);
           setIsAI(false); // Reset AI flag since we're falling back
           // Fallback to random location if geocoding fails
@@ -600,7 +633,7 @@ function Geo() {
       setIsAI(false);
       loadRandomLocation();
     }
-  }, [data, loadRandomLocation]);
+  }, [data, loadRandomLocation, findStreetViewLocation]);
 
   const loadNextAILocation = useCallback(() => {
     if (!isAI || !aiLocations.length) return;
@@ -619,10 +652,6 @@ function Geo() {
           document.getElementById("pano") as HTMLElement,
           {
             position: nextLocation,
-            pov: {
-              heading: Math.random() * 360,
-              pitch: Math.random() * 40 - 20,
-            },
             enableCloseButton: false,
             addressControl: false,
             fullscreenControl: false,
@@ -639,6 +668,9 @@ function Geo() {
             source: google.maps.StreetViewSource.GOOGLE,
           } as google.maps.StreetViewPanoramaOptions & { compassControl: boolean, source: google.maps.StreetViewSource }
         );
+
+        // Store panorama in ref
+        panoramaRef.current = panorama;
 
         panorama.addListener('pov_changed', () => {
           const pov = panorama.getPov();
@@ -751,7 +783,7 @@ function Geo() {
 
       {/* back to start button */}
       {gameStarted && (
-      <button onClick={() => initialize()}
+      <button onClick={() => returnToStart()}
         className="absolute bottom-32 left-6 p-1 ring-2 ring-white rounded-lg z-40 items-center justify-center bg-gray-500 bg-opacity-60"
       ><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-rotate-ccw-icon lucide-rotate-ccw inline"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
         Start</button>)}
