@@ -102,7 +102,34 @@ STRICT REQUIREMENTS:
 6. Locations should be outside of buildings or private properties, ideally in public spaces
 7. Ensure the addresses are diverse geographically but ALL match the theme
 8. The address should provide a view that clearly shows the theme
-9. Include a name of what is at the address at the start if relevant, eg. Mcdonalds, Eifel tower, specific building, etc.
+9. Include a name of what is at the address at the start if relevant, eg. Mcdonalds, natural history museum, specific building, etc.
+
+ADDRESS ACCURACY REQUIREMENTS:
+- Use exact street addresses that can be found on Google Maps
+- Include precise street numbers (avoid ranges like "100-200")
+- Use official street names (not colloquial names)
+- Include proper postal/zip codes for the country
+- Verify address format matches local conventions (US: ZIP codes, UK: postcodes, etc.)
+- Choose main entrances or primary access points for landmarks
+- Avoid private driveways, gated communities, or restricted access areas
+- Prefer addresses on major streets rather than side streets or alleys
+
+GEOGRAPHICAL DISTRIBUTION:
+- Spread locations across different continents when possible
+- Avoid clustering multiple locations in the same city unless the location set is a city
+- Balance between famous landmarks and lesser-known but theme-appropriate locations
+
+STREET VIEW OPTIMIZATION:
+- Select addresses where the theme element is visible from the street
+- Avoid locations inside buildings, underground, or behind barriers
+- Choose viewpoints where the theme is immediately apparent to a Street View user
+
+QUALITY VALIDATION:
+- Each address should be specific enough to locate on Google Maps
+- The location should offer a clear, unobstructed view of the theme element
+- Verify that the address format is correct for the country
+- Ensure the location name matches the actual place name
+- Double-check that postal codes are valid for the city/region
 
 ENHANCED THEME INTERPRETATION:
 - "historical": ONLY addresses near castles, ancient ruins, historical monuments, war memorials, historic battlefields, museums with historic significance, old palaces, heritage sites
@@ -124,6 +151,20 @@ Historical: "Westminster Abbey, 20 Deans Yd, Westminster, London SW1P 3PA, UK"
 Nature: "Yosemite Valley Visitor Center, 9035 Village Dr, Yosemite Valley, CA 95389, USA"
 Urban: "Times Square, Broadway & 7th Ave, New York, NY 10036, USA"
 Cultural: "Louvre Museum, Rue de Rivoli, 75001 Paris, France"
+
+ADDITIONAL ADDRESS FORMAT EXAMPLES:
+- USA: "Statue of Liberty, Liberty Island, New York, NY 10004, USA"
+- Canada: "CN Tower, 290 Bremner Blvd, Toronto, ON M5V 3L9, Canada"
+- Australia: "Sydney Opera House, Bennelong Point, Sydney NSW 2000, Australia"
+- Germany: "Brandenburg Gate, Pariser Platz, 10117 Berlin, Germany"
+- Japan: "Tokyo Tower, 4 Chome-2-8 Shibakoen, Minato City, Tokyo 105-0011, Japan"
+
+ADDRESS VERIFICATION CHECKLIST:
+- Does the address include a specific building number or landmark name?
+- Is the postal/zip code correctly formatted for the country?
+- Would this address work if entered into Google Maps?
+- Is the location accessible from a public street or pathway?
+- Can the theme element be seen from the street address provided?
 
 Return exactly 5 addresses in JSON format. Each address must be a perfect match for the theme.`
 

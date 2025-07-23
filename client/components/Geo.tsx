@@ -71,7 +71,7 @@ function Geo() {
   };
 
   // Helper function to create Street View panorama with consistent configuration
-  const createStreetViewPanorama = useCallback((position: {lat: number, lng: number}) => {
+  const createStreetViewPanorama = useCallback((position: {lat: number, lng: number}, retryCallback?: () => void) => {
     // Dispose of existing panorama to prevent WebGL context leaks
     if (panoramaRef.current) {
       // Remove all listeners to prevent memory leaks
@@ -84,7 +84,7 @@ function Geo() {
       {
         position: position,
         source: google.maps.StreetViewSource.GOOGLE,
-        preference: google.maps.StreetViewPreference.BEST,
+        preference: google.maps.StreetViewPreference.NEAREST,
         enableCloseButton: false,
         addressControl: false,
         fullscreenControl: false,
@@ -110,6 +110,16 @@ function Geo() {
     panorama.addListener('status_changed', () => {
       const status = panorama.getStatus();
       if (status === google.maps.StreetViewStatus.OK) {
+        // Check if panorama has a location property (indicates valid Street View data)
+        const panoramaLocation = panorama.getLocation();
+        if (!panoramaLocation) {
+          console.warn('Panorama loaded but has no location data (black screen), retrying...');
+          if (retryCallback) {
+            retryCallback();
+            return;
+          }
+        }
+        
         const actualPosition = panorama.getPosition();
         if (actualPosition) {
           const actualCoords = {
@@ -118,6 +128,53 @@ function Geo() {
           };   
           // Update the current location to match where the panorama actually is
           setCurrentLocation(actualCoords);
+        }
+      } else if (status === google.maps.StreetViewStatus.ZERO_RESULTS) {
+        console.warn('No Street View found at exact coordinates, trying fallback with larger radius');
+        
+        // If we have a retry callback (for AI locations), try to find Street View with larger radius
+        if (retryCallback) {
+          const streetViewService = new google.maps.StreetViewService();
+          
+          // Try progressively larger radii: 1km, 5km, 10km, 25km
+          const radii = [1000, 5000, 10000, 25000];
+          let radiusIndex = 0;
+          
+          const tryWithRadius = () => {
+            if (radiusIndex >= radii.length) {
+              console.error('No Street View found even with largest radius, calling retry callback');
+              retryCallback();
+              return;
+            }
+            
+            const radius = radii[radiusIndex];
+            console.log(`Trying Street View search with ${radius}m radius...`);
+            
+            streetViewService.getPanorama({
+              location: position,
+              radius: radius,
+              source: google.maps.StreetViewSource.GOOGLE,
+              preference: google.maps.StreetViewPreference.BEST
+            }, (data, searchStatus) => {
+              if (searchStatus === google.maps.StreetViewStatus.OK && data?.location?.latLng) {
+                const foundLocation = {
+                  lat: data.location.latLng.lat(),
+                  lng: data.location.latLng.lng()
+                };
+                console.log(`Found Street View at ${radius}m radius:`, foundLocation);
+                
+                // Update panorama to the found location
+                panorama.setPosition(foundLocation);
+                setCurrentLocation(foundLocation);
+              } else {
+                console.log(`No Street View found at ${radius}m radius, trying next radius...`);
+                radiusIndex++;
+                tryWithRadius();
+              }
+            });
+          };
+          
+          tryWithRadius();
         }
       }
     });
@@ -488,16 +545,37 @@ function Geo() {
     queryClient.removeQueries({ queryKey: ['maps'] });
   }
 
-  interface HandleSubmitEvent extends React.MouseEvent<HTMLButtonElement> {
-    preventDefault: () => void;
-  }
-
-  const handleSubmit = (event: HandleSubmitEvent): void => {
+  const handleSubmit = (event: React.MouseEvent<HTMLButtonElement>): void => {
     event.preventDefault();
     // Clear any existing data before refetching
     queryClient.invalidateQueries({ queryKey: ['maps'] });
     refetch();
   };
+
+  // Helper function to handle AI location fallback
+  const loadNextAILocationWithFallback = useCallback((coordinates: Array<{lat: number, lng: number}>, startIndex: number) => {
+    if (startIndex >= coordinates.length) {
+      // No more AI locations, fallback to random
+      console.log('All AI locations exhausted, falling back to random');
+      setIsAI(false);
+      loadRandomLocation();
+      return;
+    }
+    
+    setCurrentAiLocationIndex(startIndex);
+    setCurrentLocation(coordinates[startIndex]);
+    setIsLoading(true);
+    
+    setTimeout(() => {
+      createStreetViewPanorama(coordinates[startIndex], () => {
+        // If this location fails, try the next one
+        console.log(`AI location ${startIndex + 1} failed, trying next...`);
+        setIsLoading(false);
+        loadNextAILocationWithFallback(coordinates, startIndex + 1);
+      });
+      setIsLoading(false);
+    }, 1000);
+  }, [createStreetViewPanorama, loadRandomLocation]);
 
   const loadAILocations = useCallback(() => {
     if (!window.google || !window.google.maps || !window.google.maps.Geocoder) {
@@ -548,7 +626,24 @@ function Geo() {
             
             // Initialize the panorama with the first AI location at exact coordinates
             setTimeout(() => {
-              createStreetViewPanorama(coordinates[0]);
+              createStreetViewPanorama(coordinates[0], () => {
+                // If first AI location fails, try the next one
+                console.log('First AI location failed, trying next location...');
+                if (coordinates.length > 1) {
+                  setCurrentAiLocationIndex(1);
+                  setCurrentLocation(coordinates[1]);
+                  createStreetViewPanorama(coordinates[1], () => {
+                    // If second also fails, continue to next or fallback to random
+                    console.log('Second AI location also failed, continuing...');
+                    loadNextAILocationWithFallback(coordinates, 2);
+                  });
+                } else {
+                  // No more AI locations, fallback to random
+                  console.log('No more AI locations available, falling back to random');
+                  setIsAI(false);
+                  loadRandomLocation();
+                }
+              });
               setIsLoading(false);
             }, 1000);
           }
@@ -565,7 +660,7 @@ function Geo() {
       setIsAI(false);
       loadRandomLocation();
     }
-  }, [data, loadRandomLocation, createStreetViewPanorama]);
+  }, [data, loadRandomLocation, createStreetViewPanorama, loadNextAILocationWithFallback]);
 
   const loadNextAILocation = useCallback(() => {
     if (!isAI || !aiLocations.length) return;
@@ -578,13 +673,18 @@ function Geo() {
       setCurrentLocation(nextLocation);
       setIsLoading(true);
       
-      // Update panorama with next AI location
+      // Update panorama with next AI location and fallback support
       setTimeout(() => {
-        createStreetViewPanorama(nextLocation);
+        createStreetViewPanorama(nextLocation, () => {
+          // If this AI location fails, try the next one
+          console.log(`AI location ${nextIndex + 1} failed, trying next...`);
+          setIsLoading(false);
+          loadNextAILocationWithFallback(aiLocations, nextIndex + 1);
+        });
         setIsLoading(false);
       }, 1000);
     }
-  }, [isAI, aiLocations, currentAiLocationIndex, createStreetViewPanorama]);
+  }, [isAI, aiLocations, currentAiLocationIndex, createStreetViewPanorama, loadNextAILocationWithFallback]);
 
   useEffect(() => {
       if (divRef.current) {
@@ -641,7 +741,7 @@ function Geo() {
           >Start Random Game</button>
 
         <p className='text-xl mb-4 mt-8'>Or try an AI generated set of locations:</p>
-        <form id="input" className='justify-center items-center'>
+        <div className='justify-center items-center'>
           <label className='text-xl'>Location: 
           <input
             onChange={handleLocation}
@@ -678,7 +778,7 @@ function Geo() {
             Start AI Game
           </button>}
         </div>
-        </form>
+        </div>
           </div>
         </div>
       )}
