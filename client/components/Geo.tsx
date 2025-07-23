@@ -101,7 +101,7 @@ function Geo() {
           location: randomCoords,
           radius: 1000,
           source: google.maps.StreetViewSource.GOOGLE,
-          preference: google.maps.StreetViewPreference.BEST
+          preference: google.maps.StreetViewPreference.NEAREST
         }, (data, status) => {
           if (status === google.maps.StreetViewStatus.OK && data?.location?.latLng) {
             const lat = data.location.latLng.lat();
