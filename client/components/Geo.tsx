@@ -83,6 +83,8 @@ function Geo() {
       document.getElementById("pano") as HTMLElement,
       {
         position: position,
+        source: google.maps.StreetViewSource.GOOGLE,
+        preference: google.maps.StreetViewPreference.BEST,
         enableCloseButton: false,
         addressControl: false,
         fullscreenControl: false,
@@ -95,14 +97,30 @@ function Geo() {
         clickToGo: true,
         scrollwheel: true,
         compassControl: false,
-        gestureHandling: 'passive',
-        source: google.maps.StreetViewSource.GOOGLE, // Ensure official Google imagery
-        preference: google.maps.StreetViewPreference.BEST // Use best quality official imagery
+        gestureHandling: 'passive'
       } as google.maps.StreetViewPanoramaOptions & { compassControl: boolean, source: google.maps.StreetViewSource }
     );
 
+    console.log('panorama:', panorama);
+
     // Store panorama in ref
     panoramaRef.current = panorama;
+
+    // Add listener to get the actual panorama position after it loads
+    panorama.addListener('status_changed', () => {
+      const status = panorama.getStatus();
+      if (status === google.maps.StreetViewStatus.OK) {
+        const actualPosition = panorama.getPosition();
+        if (actualPosition) {
+          const actualCoords = {
+            lat: actualPosition.lat(),
+            lng: actualPosition.lng()
+          };   
+          // Update the current location to match where the panorama actually is
+          setCurrentLocation(actualCoords);
+        }
+      }
+    });
 
     // Add listener for pov changes to track heading
     panorama.addListener('pov_changed', () => {
@@ -141,7 +159,7 @@ function Geo() {
     
     const streetViewService = new google.maps.StreetViewService();
     let attempts = 0;
-    const maxAttempts = 20; // Limit attempts to avoid infinite loops
+    const maxAttempts = 30; // Limit attempts to avoid infinite loops
 
     const tryRandomLocation = async (): Promise<{lat: number, lng: number} | null> => {
       if (attempts >= maxAttempts) {
@@ -153,7 +171,6 @@ function Geo() {
 
       const randomCoords = getRandomCoordinates();
       attempts++;
-      console.log(`Attempt ${attempts}: Trying coordinates`, randomCoords);
 
       return new Promise((resolve) => {
         streetViewService.getPanorama({
@@ -162,14 +179,12 @@ function Geo() {
           source: google.maps.StreetViewSource.GOOGLE,
           preference: google.maps.StreetViewPreference.BEST
         }, (data, status) => {
-          console.log(`Attempt ${attempts} result:`, status);
           if (status === google.maps.StreetViewStatus.OK && data?.location?.latLng) {
             const lat = data.location.latLng.lat();
             const lng = data.location.latLng.lng();
-            console.log(`Success! Found Street View at:`, { lat, lng });
             resolve({ lat, lng });
+            attempts = 0;
           } else {
-            console.log(`Failed with status: ${status}, trying again...`);
             // Try again with new random coordinates
             resolve(tryRandomLocation());
           }
@@ -195,16 +210,26 @@ function Geo() {
   }
 
   const expandMap = (event: ExpandMapEvent): void => {
-    console.log(event.target.innerHTML);
-    if (expanded === 1 && event.target.innerHTML === '-') {
+    if (expanded === 0 && event.target.innerHTML === '-') {
+      // Go to smallest size
+      setMapSize({width: '200px', height: '150px'})
+      setExpanded(-1)
+    } else if (expanded === -1 && event.target.innerHTML === '+') {
+      // Go from smallest to default
       setMapSize({width: '400px', height: '300px'})
       setExpanded(0)
     } else if (expanded === 0 && event.target.innerHTML === '+' || expanded === 2 && event.target.innerHTML === '-') { 
+      // Go to medium size
       setMapSize({width: '800px', height: '600px'})
       setExpanded(1)
     } else if (expanded === 1 && event.target.innerHTML === '+') {
+      // Go to largest size
       setMapSize({width: '75%', height: '100%'})
       setExpanded(2)
+    } else if (expanded === 1 && event.target.innerHTML === '-') {
+      // Go back to default from medium
+      setMapSize({width: '400px', height: '300px'})
+      setExpanded(0)
     }
   };
 
@@ -257,7 +282,6 @@ function Geo() {
     setFinalPolylines([]);
     
     if (showFinalResults && mapInstance && playerGuesses.length > 0 && correctGuesses.length > 0) {
-      console.log('Creating polylines using mapInstance from state...');
       const newPolylines: google.maps.Polyline[] = [];
       
       for (let i = 0; i < Math.min(playerGuesses.length, correctGuesses.length); i++) {
@@ -268,7 +292,6 @@ function Geo() {
           const polyline = drawPolyline(guess, correct, mapInstance);
           if (polyline) {
             newPolylines.push(polyline);
-            console.log(`Drew polyline ${i} from`, guess, 'to', correct);
           }
         }
       }
@@ -486,7 +509,6 @@ function Geo() {
     }
 
     if (data && data.locations) {
-      console.log('Starting to geocode AI locations:', data.locations);
       setIsLoading(true);
       
       // Use Google's Geocoding service to convert addresses to coordinates
@@ -498,14 +520,12 @@ function Geo() {
             geocoder.geocode({ address: String(location.location) }, (results, status) => {
               if (status === 'OK' && results?.[0]) {
                 const latLng = results[0].geometry.location;
-                console.log(`Successfully geocoded location ${index + 1}: ${location.location}`);
                 
                 // Use exact geocoded coordinates without Street View validation
                 const exactCoords = {
                   lat: latLng.lat(),
                   lng: latLng.lng()
                 };
-                console.log(`Using exact coordinates for location ${index + 1}:`, exactCoords);
                 resolve(exactCoords);
               } else {
                 console.error('Geocoding failed for:', location.location, status);
@@ -519,7 +539,6 @@ function Geo() {
       // Wait for all addresses to be geocoded
       Promise.all(locationPromises)
         .then(coordinates => {
-          console.log('Successfully geocoded AI locations with exact coordinates:', coordinates);
           setAiLocations(coordinates);
           setCurrentAiLocationIndex(0);
           
@@ -766,10 +785,20 @@ function Geo() {
    </div>
         </APIProvider>
         {/* zoom buttons */}
-        {expanded === 0 && !showResultsMap && !showFinalResults ? (
+        {expanded === -1 && !showResultsMap && !showFinalResults ? (
           <button className='absolute top-0 left-0 bg-gray-500 bg-opacity-40 text-white  px-2 rounded text-2xl' onClick={expandMap} disabled={showResultsMap}>
             +
           </button>
+        ) : ''}
+        {expanded === 0 && !showResultsMap && !showFinalResults ? (
+          <div className='flex absolute top-0 left-0'>
+          <button className=' bg-gray-500 bg-opacity-40 text-white  px-2 rounded text-2xl' onClick={expandMap} disabled={showResultsMap}>
+          +
+          </button>
+          <button className='bg-gray-500 bg-opacity-40 text-white  px-2 rounded text-2xl' onClick={expandMap} disabled={showResultsMap}>
+          -
+        </button>
+        </div>
         ) : ''}
         {expanded === 1 && !showResultsMap && !showFinalResults ? (
           <div className='flex absolute top-0 left-0'>

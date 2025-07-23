@@ -102,6 +102,7 @@ STRICT REQUIREMENTS:
 6. Locations should be outside of buildings or private properties, ideally in public spaces
 7. Ensure the addresses are diverse geographically but ALL match the theme
 8. The address should provide a view that clearly shows the theme
+9. Include a name of what is at the address at the start if relevant, eg. Mcdonalds, Eifel tower, specific building, etc.
 
 ENHANCED THEME INTERPRETATION:
 - "historical": ONLY addresses near castles, ancient ruins, historical monuments, war memorials, historic battlefields, museums with historic significance, old palaces, heritage sites
@@ -145,12 +146,17 @@ Return exactly 5 addresses in JSON format. Each address must be a perfect match 
                       description: 'A complete street address including street number, street name, city, postal code, and country.',
                       minLength: 20,
                     },
+                    explanation: {
+                      type: Type.STRING,
+                      description: 'reasoning behind the choice made, including how each location relates to the theme and why it was chosen.',
+                    }
                   },
-                  required: ['location'],
+                  required: ['location', 'explanation'],
                 },
                 minItems: 5,
                 maxItems: 5,
               },
+
             },
             required: ['locations'],
           },
