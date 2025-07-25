@@ -84,8 +84,10 @@ server.get('/api/v1/maps', async (req, res) => {
     }
     const location = req.query.location
     const theme = req.query.theme
+    const totalRounds = Number(req.query.totalRounds)
 
-    const prompt = `Generate 5 specific street addresses for a location guessing game with the following requirements:
+
+    const prompt = `Generate ${totalRounds ? totalRounds + 1 : 6} specific street addresses for a location guessing game with the following requirements:
 
 LOCATION: ${location ? location : 'anywhere in the world'}
 THEME: ${theme ? theme : 'interesting places'}
@@ -178,7 +180,7 @@ Return exactly 5 addresses in JSON format. Each address must be a perfect match 
             properties: {
               locations: {
                 type: Type.ARRAY,
-                description: 'An array of 5 specific street addresses that match the location and theme requirements.',
+                description: `An array of ${totalRounds ? totalRounds + 1 : 6} specific street addresses that match the location and theme requirements.`,
                 items: {
                   type: Type.OBJECT,
                   properties: {
@@ -194,8 +196,8 @@ Return exactly 5 addresses in JSON format. Each address must be a perfect match 
                   },
                   required: ['location', 'explanation'],
                 },
-                minItems: 5,
-                maxItems: 5,
+                minItems: totalRounds ? totalRounds + 1 : 6,
+                maxItems: totalRounds ? totalRounds + 1 : 6,
               },
 
             },

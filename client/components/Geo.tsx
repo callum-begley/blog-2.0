@@ -48,13 +48,14 @@ function Geo() {
   const queryClient = useQueryClient();
   const divRef = useRef<HTMLDivElement>(null);
   const panoramaRef = useRef<google.maps.StreetViewPanorama | null>(null);
-  const totalRounds = 5;
+  const [totalRounds, setTotalRounds] = useState(5);
   const [moving, setMoving] = useState(true);
+  const [panZoom, setPanZoom] = useState(true);
 
   const { data, isError, isFetching, refetch } = useQuery({
     queryKey: ['maps'],
     queryFn: async () => {
-      const data: MapsData = await getLocations(location, theme)
+      const data: MapsData = await getLocations(location, theme, totalRounds)
       return data
     },
     enabled: false,
@@ -91,27 +92,33 @@ function Geo() {
         addressControl: false,
         fullscreenControl: false,
         motionTrackingControl: false,
-        panControl: false,
+        motionTracking: panZoom,
+        panControl: panZoom,
         zoomControl: false,
-        linksControl: moving,
+        linksControl: moving && panZoom,
         showRoadLabels: false,
         visible: true,
-        clickToGo: moving,
-        scrollwheel: true,
+        clickToGo: moving && panZoom,
+        scrollwheel: panZoom,
+        disableDoubleClickZoom: !panZoom,
+        keyboardShortcuts: panZoom,
         compassControl: false,
-        gestureHandling: moving ? 'passive' : 'none'
+        gestureHandling: (moving && panZoom) ? 'cooperative' : 'none'
       } as google.maps.StreetViewPanoramaOptions & { compassControl: boolean, source: google.maps.StreetViewSource }
     );
 
-    console.log('panorama:', panorama);
-
     // Store panorama in ref
     panoramaRef.current = panorama;
-
+    
     // Add listener to get the actual panorama position after it loads
     panorama.addListener('status_changed', () => {
       const status = panorama.getStatus();
       if (status === google.maps.StreetViewStatus.OK) {
+        // Set zoom to 0 if panZoom is disabled
+        if (!panZoom) {
+          panorama.setZoom(0);
+        }
+        
         // Check if panorama has a location property (indicates valid Street View data)
         const panoramaLocation = panorama.getLocation();
         if (!panoramaLocation) {
@@ -185,13 +192,18 @@ function Geo() {
     panorama.addListener('pov_changed', () => {
       const pov = panorama.getPov();
       setCurrentHeading(pov.heading || 0);
+      if (!panZoom) {
+        if (panorama.getZoom() !== 0) {
+          panorama.setZoom(0);
+        }
+      }
     });
 
     // Set initial heading
     setCurrentHeading(panorama.getPov().heading || 0);
 
     return panorama;
-  }, [moving]);
+  }, [moving, panZoom]);
 
   // Helper function to reset game state
   const resetGameState = useCallback(() => {
@@ -425,12 +437,12 @@ function Geo() {
   const nextRound = () => {
     setRoundNumber((prev) => prev + 1);
     
-    if (roundNumber == 5) {
+    if (roundNumber == totalRounds) {
       endGame();
       return;
     } 
     
-    if (roundNumber > 5) {
+    if (roundNumber > totalRounds) {
       resetGameState();
     }
 
@@ -531,6 +543,19 @@ function Geo() {
     setDistanceDisplay(0);
     setUserHasTyped(false);
     setMoving(true);
+    setPanZoom(true);
+    setScore(0);
+    setScoreAlert('');
+    setRoundNumber(1);
+    setTotalRounds(5);
+    setAiLocations([]);
+    setCurrentAiLocationIndex(0);
+    setIsAI(false);
+    setPlayerGuesses([]);
+    setCorrectGuesses([]);
+    setFinalPolylines([]);
+    setShowFinalResults(false);
+    // Clear cached data
     queryClient.removeQueries({ queryKey: ['maps'] });
   };
 
@@ -712,8 +737,6 @@ function Geo() {
       }
     }, [userHasTyped, gameStarted]);
 
-    console.log(moving, 'moving state');
-
   return (
     <div className='h-screen w-full'>
       { gameStarted && !showFinalResults && <p className='absolute top-0 left-0 p-2 z-50 bg-gradient-to-bl from-sky-400 to-blue-500 rounded-lg ring-2 ring-white text-white text-2xl translate-x-4 translate-y-4 '>Score: {score}</p> }
@@ -796,13 +819,17 @@ function Geo() {
             No Moving</label>
             <label className='text-lg'><input 
             type="checkbox" 
-            className='mx-2 scale-125'/> 
+            className='mx-2 scale-125'
+            checked={panZoom === false}
+            onChange={() => setPanZoom(!panZoom)}
+          /> 
             No Moving/Panning/Zooming</label>
             <label className='text-lg mr-2'>Round Limit: <input 
             type="number" 
             className='mx-auto ring-1 ring-white w-10 text-center rounded-lg'
             min={1}
             max={10}
+            onChange={totalRounds => setTotalRounds(Number(totalRounds.target.value))}
             value={totalRounds}
           />
             </label>
@@ -844,6 +871,9 @@ function Geo() {
       <div 
         id="pano" 
         className="absolute top-0 left-0 z-10 h-screen w-full"
+        style={{
+          pointerEvents: panZoom ? 'auto' : 'none'
+        }}
       ></div>
       
       {/* Regular Map */}
@@ -952,13 +982,13 @@ function Geo() {
             Submit
           </button>
         ) : 
-          (roundNumber <= 5 ? (
+          (roundNumber <= totalRounds ? (
             <button 
               className='absolute bottom-0 block bg-gradient-to-bl from-sky-400 to-blue-600 text-white p-2 px-4 rounded-full text-3xl ring-2 ring-white animate-pulse -translate-y-3 hover:animate-none hover:scale-110 transition-transform duration-100' 
               onClick={() => nextRound()}
             >
-              { roundNumber < 5 &&  'Next Round' }
-              { roundNumber === 5 && 'Finish' }
+              { roundNumber < totalRounds &&  'Next Round' }
+              { roundNumber === totalRounds && 'Finish' }
             </button>
           ) : (
             <button 
