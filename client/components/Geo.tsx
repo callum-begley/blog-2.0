@@ -49,6 +49,7 @@ function Geo() {
   const divRef = useRef<HTMLDivElement>(null);
   const panoramaRef = useRef<google.maps.StreetViewPanorama | null>(null);
   const totalRounds = 5;
+  const [moving, setMoving] = useState(true);
 
   const { data, isError, isFetching, refetch } = useQuery({
     queryKey: ['maps'],
@@ -92,10 +93,10 @@ function Geo() {
         motionTrackingControl: false,
         panControl: false,
         zoomControl: false,
-        linksControl: false,
+        linksControl: moving,
         showRoadLabels: false,
         visible: true,
-        clickToGo: true,
+        clickToGo: moving,
         scrollwheel: true,
         compassControl: false,
         gestureHandling: 'passive'
@@ -710,6 +711,8 @@ function Geo() {
       }
     }, [userHasTyped, gameStarted]);
 
+    console.log(moving, 'moving state');
+
   return (
     <div className='h-screen w-full'>
       { gameStarted && !showFinalResults && <p className='absolute top-0 left-0 p-2 z-50 bg-gradient-to-bl from-sky-400 to-blue-500 rounded-lg ring-2 ring-white text-white text-2xl translate-x-4 translate-y-4 '>Score: {score}</p> }
@@ -785,7 +788,10 @@ function Geo() {
           
           <label className='text-lg'><input 
             type="checkbox" 
-            className='mx-2 scale-125'/> 
+            className='mx-2 scale-125'
+            checked={moving === false}
+            onChange={() => setMoving(!moving)}
+          /> 
             No Moving</label>
             <label className='text-lg'><input 
             type="checkbox" 
