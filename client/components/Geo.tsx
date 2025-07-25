@@ -99,7 +99,7 @@ function Geo() {
         clickToGo: moving,
         scrollwheel: true,
         compassControl: false,
-        gestureHandling: 'passive'
+        gestureHandling: moving ? 'passive' : 'none'
       } as google.maps.StreetViewPanoramaOptions & { compassControl: boolean, source: google.maps.StreetViewSource }
     );
 
@@ -191,7 +191,7 @@ function Geo() {
     setCurrentHeading(panorama.getPov().heading || 0);
 
     return panorama;
-  }, []);
+  }, [moving]);
 
   // Helper function to reset game state
   const resetGameState = useCallback(() => {
@@ -530,6 +530,7 @@ function Geo() {
     setHasLoadedInitialLocation(false);
     setDistanceDisplay(0);
     setUserHasTyped(false);
+    setMoving(true);
     queryClient.removeQueries({ queryKey: ['maps'] });
   };
 
