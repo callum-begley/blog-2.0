@@ -128,16 +128,7 @@ function Geo() {
             return;
           }
         }
-        
-        const actualPosition = panorama.getPosition();
-        if (actualPosition) {
-          const actualCoords = {
-            lat: actualPosition.lat(),
-            lng: actualPosition.lng()
-          };   
-          // Update the current location to match where the panorama actually is
-          setCurrentLocation(actualCoords);
-        }
+
       } else if (status === google.maps.StreetViewStatus.ZERO_RESULTS) {
         console.warn('No Street View found at exact coordinates, trying fallback with larger radius');
         
@@ -174,7 +165,6 @@ function Geo() {
                 
                 // Update panorama to the found location
                 panorama.setPosition(foundLocation);
-                setCurrentLocation(foundLocation);
               } else {
                 console.log(`No Street View found at ${radius}m radius, trying next radius...`);
                 radiusIndex++;
@@ -201,6 +191,9 @@ function Geo() {
 
     // Set initial heading
     setCurrentHeading(panorama.getPov().heading || 0);
+    setCurrentLocation({lat: position.lat, lng: position.lng });
+
+
 
     return panorama;
   }, [moving, panZoom]);
@@ -760,16 +753,17 @@ function Geo() {
         }}
         >
           <div className='text-white text-2xl flex flex-col items-center gap-4'>
-            <h2 className='text-6xl font-bold mb-8'>Where On Earth?</h2>
-            <p className='text-xl mb-4'>Guess the location based on the street view image!</p>
-            <p className='text-lg mb-4'>Score points based on how close your guess is to the actual location.</p>
-            <p className='text-lg mb-8'>There are 5 rounds, each with a different location to guess.</p>
+            <h2 className='text-6xl font-bold mb-4'>Where On Earth? 🌏</h2>
+            <p className='text-xl mb-1'>Guess the location based on the street view image!</p>
+            <p className='text-lg mb-1'>Score points based on how close your guess is to the actual location.</p>
+            <p className='text-lg mb-3'>There are 5 rounds, each with a different location to guess.</p>
           <button onClick={() => startGame()}
-            className="p-4 ring-2 ring-white rounded-full z-40 items-center justify-center bg-gradient-to-bl from-lime-400 to-green-600 hover:scale-110 transition-transform duration-100 text-white text-2xl font-semibold"
+            className="p-4 ring-2 ring-white rounded-full z-40 items-center justify-center shadow-md shadow-black bg-gradient-to-bl from-lime-400 to-green-600 hover:scale-110 transition-transform duration-100 text-white text-2xl font-semibold"
           >Start Random Game</button>
 
-        
-        <p className='text-xl mb-4 mt-8'>Or try an AI generated set of locations:</p>
+        <div className='ring-2 ring-white rounded-[5rem] backdrop-blur-lg p-4 mt-8 place-items-center shadow-md shadow-black'>
+
+        <p className='text-2xl my-8 font-semibold'>AI Generated Locations:</p>
         <div className='justify-center items-center'>
           <label className='text-xl'>Location: 
           <input
@@ -779,7 +773,7 @@ function Geo() {
             name='input'
             className='text-black ring-blue-400  ring-2 rounded-md p-2 m-2 bg-white'
           /></label>
-          <label className='text-xl'>Theme: 
+          <label className='text-xl ml-4'>Theme: 
           <input
             onChange={handleTheme}
             value={userHasTyped ? theme : themeScroll}
@@ -788,8 +782,8 @@ function Geo() {
             name='input'
             className={` ring-blue-400 ring-2 rounded-md p-2 m-2 bg-white ${userHasTyped ? 'text-black' : 'text-gray-500'} `}
           /></label>
-          <div className="place-self-center m-10">
-          { !data && <button className={`bg-gradient-to-bl from-violet-400 to-indigo-600 font-medium text-2xl rounded-full p-4 ring-white ring-2 m-10 flex items-center gap-3 hover:scale-110 transition-transform duration-100`}
+          <div className="place-self-center mt-10 mb-4">
+          { !data && <button className={`bg-gradient-to-bl from-violet-400 to-indigo-600 font-medium shadow-md shadow-black text-2xl rounded-full p-4 ring-white ring-2 mt-10 flex items-center gap-3 hover:scale-110 transition-transform duration-100`}
             onClick={handleSubmit}
             disabled={ isFetching }>
             { isFetching && (
@@ -801,14 +795,16 @@ function Geo() {
             { isFetching ? 'Generating' : 'Generate' }
           </button> }
           { data && 
-          <button className={`bg-gradient-to-bl from-violet-400 to-indigo-600 font-medium text-2xl rounded-full p-4 ring-white ring-2 hover:scale-110 transition-transform duration-100`}
+          <button className={`bg-gradient-to-bl from-violet-400 to-indigo-600 font-medium shadow-md shadow-black text-2xl rounded-full p-4 ring-white ring-2 hover:scale-110 transition-transform duration-100`}
             onClick={startAIGame}
             disabled={ isFetching }>
             Start AI Game
           </button>}
         </div>
+        </div>
+        </div>
         <p className='text-2xl text-center mt-8'>Settings:</p>
-        <div className='ring-2 ring-white rounded-[5rem] bg-gray-400 bg-opacity-40 p-4 mt-2 place-items-center flex justify-between'>
+        <div className='ring-2 ring-white rounded-[5rem] bg-gray-400 bg-opacity-40 p-4 mt-2 place-items-center flex justify-between shadow-md shadow-black'>
           
           <label className='text-lg'><input 
             type="checkbox" 
@@ -836,7 +832,6 @@ function Geo() {
             </label>
         </div>
         </div>
-          </div>
         </div>
       )}
       
@@ -865,7 +860,7 @@ function Geo() {
         </div>
       )}
 
-      {showFinalResults && (<h2 className='text-6xl font-bold absolute top-4 z-50 left-1/2 -translate-x-1/2'>Final Result</h2>)}
+      {showFinalResults && (<h2 className='text-6xl font-bold absolute top-4 z-50 left-1/2 -translate-x-1/2'>Final Score: <span className='text-green-500'>{score}</span>/{totalRounds*100}</h2>)}
       {showFinalResults && (<h2 className='text-4xl font-bold p-4 bg-green-500 ring-2 ring-white rounded-xl absolute bottom-20 z-50 left-1/2 -translate-x-1/2'>Final Score: {score}</h2>)}
       
       {/* Street View Panorama */}
