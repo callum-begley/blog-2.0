@@ -804,7 +804,7 @@ function Geo() {
         </div>
         </div>
         <p className='text-2xl text-center mt-8'>Settings:</p>
-        <div className='ring-2 ring-white rounded-[5rem] bg-gray-400 bg-opacity-40 p-4 mt-2 place-items-center flex justify-between shadow-md shadow-black'>
+        <div className='ring-2 ring-white rounded-[5rem] bg-gray-400 bg-opacity-40 p-4 mt-2 place-items-center flex justify-between gap-6 shadow-md shadow-black'>
           
           <label className='text-lg'><input 
             type="checkbox" 
@@ -826,7 +826,14 @@ function Geo() {
               className='w-14 h-8 text-center rounded-lg ring-2 ring-white'
               min={1}
               max={10}
-              onChange={totalRounds => setTotalRounds(Number(totalRounds.target.value))}
+              onChange={totalRounds => {
+                const newRounds = Number(totalRounds.target.value);
+                setTotalRounds(newRounds);
+                // If data has already been loaded, clear it to show Generate button again
+                if (data) {
+                  queryClient.removeQueries({ queryKey: ['maps'] });
+                }
+              }}
               value={totalRounds}
             />
             </label>
