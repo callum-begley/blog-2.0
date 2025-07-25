@@ -741,6 +741,7 @@ function Geo() {
             className="p-4 ring-2 ring-white rounded-full z-40 items-center justify-center bg-gradient-to-bl from-lime-400 to-green-600 hover:scale-110 transition-transform duration-100 text-white text-2xl font-semibold"
           >Start Random Game</button>
 
+        
         <p className='text-xl mb-4 mt-8'>Or try an AI generated set of locations:</p>
         <div className='justify-center items-center'>
           <label className='text-xl'>Location: 
@@ -761,7 +762,7 @@ function Geo() {
             className={` ring-blue-400 ring-2 rounded-md p-2 m-2 bg-white ${userHasTyped ? 'text-black' : 'text-gray-500'} `}
           /></label>
           <div className="place-self-center m-10">
-          { !data && <button className={`bg-gradient-to-bl from-lime-400 to-green-600 font-medium text-2xl rounded-full p-4 ring-white ring-2 m-10 flex items-center gap-3 hover:scale-110 transition-transform duration-100`}
+          { !data && <button className={`bg-gradient-to-bl from-violet-400 to-indigo-600 font-medium text-2xl rounded-full p-4 ring-white ring-2 m-10 flex items-center gap-3 hover:scale-110 transition-transform duration-100`}
             onClick={handleSubmit}
             disabled={ isFetching }>
             { isFetching && (
@@ -773,11 +774,31 @@ function Geo() {
             { isFetching ? 'Generating' : 'Generate' }
           </button> }
           { data && 
-          <button className={`bg-gradient-to-bl from-lime-400 to-green-600 font-medium text-2xl rounded-full p-4 ring-white ring-2 hover:scale-110 transition-transform duration-100`}
+          <button className={`bg-gradient-to-bl from-violet-400 to-indigo-600 font-medium text-2xl rounded-full p-4 ring-white ring-2 hover:scale-110 transition-transform duration-100`}
             onClick={startAIGame}
             disabled={ isFetching }>
             Start AI Game
           </button>}
+        </div>
+        <p className='text-2xl text-center mt-8'>Settings:</p>
+        <div className='ring-2 ring-white rounded-[5rem] bg-gray-400 bg-opacity-40 p-4 mt-2 place-items-center flex justify-between'>
+          
+          <label className='text-lg'><input 
+            type="checkbox" 
+            className='mx-2 scale-125'/> 
+            No Moving</label>
+            <label className='text-lg'><input 
+            type="checkbox" 
+            className='mx-2 scale-125'/> 
+            No Moving/Panning/Zooming</label>
+            <label className='text-lg mr-2'>Round Limit: <input 
+            type="number" 
+            className='mx-auto ring-1 ring-white w-10 text-center rounded-lg'
+            min={1}
+            max={10}
+            value={totalRounds}
+          />
+            </label>
         </div>
         </div>
           </div>
@@ -887,37 +908,37 @@ function Geo() {
         </APIProvider>
         {/* zoom buttons */}
         {expanded === -1 && !showResultsMap && !showFinalResults ? (
-          <button className='absolute top-0 left-0 bg-gray-500 bg-opacity-40 text-white rounded-full text-2xl/3 p-1' onClick={expandMap} disabled={showResultsMap}>
+          <button className='absolute top-0 left-0 bg-gray-500 bg-opacity-40 text-white rounded-full text-2xl/3 p-1 hover:bg-opacity-70 items-center hover:scale-125 transition-transform duration-100' onClick={expandMap} disabled={showResultsMap}>
             +
           </button>
         ) : ''}
         {expanded === 0 && !showResultsMap && !showFinalResults ? (
           <div className='flex absolute top-0 left-0'>
-          <button className=' bg-gray-500 bg-opacity-40 text-white rounded-full text-2xl/3 p-1' onClick={expandMap} disabled={showResultsMap}>
+          <button className=' bg-gray-500 bg-opacity-40 text-white rounded-full text-2xl/3 p-1 hover:bg-opacity-70 items-center hover:scale-125 transition-transform duration-100 mr-0.5' onClick={expandMap} disabled={showResultsMap}>
           +
           </button>
-          <button className='bg-gray-500 bg-opacity-40 text-white rounded-full text-2xl/3 p-1' onClick={expandMap} disabled={showResultsMap}>
+          <button className='bg-gray-500 bg-opacity-40 text-white rounded-full text-2xl/3 p-1 hover:bg-opacity-70 items-center hover:scale-125 transition-transform duration-100' onClick={expandMap} disabled={showResultsMap}>
           -
         </button>
         </div>
         ) : ''}
         {expanded === 1 && !showResultsMap && !showFinalResults ? (
           <div className='flex absolute top-0 left-0'>
-          <button className=' bg-gray-500 bg-opacity-40 text-white rounded-full text-2xl/3 p-1' onClick={expandMap} disabled={showResultsMap}>
+          <button className=' bg-gray-500 bg-opacity-40 text-white rounded-full text-2xl/3 p-1 hover:bg-opacity-70 items-center hover:scale-125 transition-transform duration-100 mr-0.5' onClick={expandMap} disabled={showResultsMap}>
           +
           </button>
-          <button className='bg-gray-500 bg-opacity-40 text-white rounded-full text-2xl/3 p-1' onClick={expandMap} disabled={showResultsMap}>
+          <button className='bg-gray-500 bg-opacity-40 text-white rounded-full text-2xl/3 p-1 hover:bg-opacity-70 items-center hover:scale-125 transition-transform duration-100' onClick={expandMap} disabled={showResultsMap}>
           -
         </button>
         </div>
         ) : ''}
         {expanded === 2 && !showResultsMap && !showFinalResults ?
-        <button className='absolute top-0 left-0 bg-gray-500 bg-opacity-40 text-white  rounded-full text-2xl/3 p-1' onClick={expandMap} disabled={showResultsMap}>
+        <button className='absolute top-0 left-0 bg-gray-500 bg-opacity-40 text-white  rounded-full text-2xl/3 p-1 hover:bg-opacity-70 items-center hover:scale-125 transition-transform duration-100' onClick={expandMap} disabled={showResultsMap}>
           -
         </button> : ''}
         {!showResultsMap && !showFinalResults ? (
           <button 
-            className='absolute bottom-1 left-1 bg-gradient-to-bl from-lime-400 to-green-600 text-white px-3 rounded-full text-xl ring-2 ring-white disabled:bg-gray-500 disabled:bg-none disabled:text-gray-400 hover:scale-110 transition-transform duration-100' 
+            className='absolute bottom-1 left-1 bg-gradient-to-bl from-lime-400 to-green-600 text-white px-3 rounded-full text-xl ring-2 ring-white disabled:bg-gray-500 disabled:bg-none disabled:text-gray-400 enabled:hover:scale-110 transition-transform duration-100' 
             onClick={() => submitGuess()}
             disabled={isLoading || !marker}
           >
