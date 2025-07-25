@@ -1,4 +1,4 @@
-import { Outlet } from 'react-router'
+import { Outlet, useLocation } from 'react-router'
 import '../styles/main.css'
 import Footer from './Footer'
 import Header from './Header'
@@ -11,6 +11,9 @@ function App() {
   function switchMode(){
     setDarkMode((x) => !x)
   }
+
+  const location = useLocation();
+  const isGeoPage = location.pathname === '/Geo';
 
   return (
     <main className={`${darkMode ? ' dark ' : ' light '} overflow-hidden `}>
@@ -32,7 +35,8 @@ function App() {
         <Outlet />
         </div>
       </div>
-      <Footer />
+      {/* Only render Footer if not on Geo page */}
+      {!isGeoPage && <Footer />}
     </main>
   )
 }

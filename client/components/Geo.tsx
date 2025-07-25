@@ -109,7 +109,7 @@ function Geo() {
 
     // Store panorama in ref
     panoramaRef.current = panorama;
-    
+
     // Add listener to get the actual panorama position after it loads
     panorama.addListener('status_changed', () => {
       const status = panorama.getStatus();
@@ -760,7 +760,7 @@ function Geo() {
         }}
         >
           <div className='text-white text-2xl flex flex-col items-center gap-4'>
-            <h2 className='text-6xl font-bold mb-8'>Geo Guessing Game</h2>
+            <h2 className='text-6xl font-bold mb-8'>Where On Earth?</h2>
             <p className='text-xl mb-4'>Guess the location based on the street view image!</p>
             <p className='text-lg mb-4'>Score points based on how close your guess is to the actual location.</p>
             <p className='text-lg mb-8'>There are 5 rounds, each with a different location to guess.</p>
@@ -812,26 +812,27 @@ function Geo() {
           
           <label className='text-lg'><input 
             type="checkbox" 
-            className='mx-2 scale-125'
+            className='mx-2 scale-150'
             checked={moving === false}
             onChange={() => setMoving(!moving)}
           /> 
             No Moving</label>
             <label className='text-lg'><input 
             type="checkbox" 
-            className='mx-2 scale-125'
+            className='mx-2 scale-150'
             checked={panZoom === false}
             onChange={() => setPanZoom(!panZoom)}
           /> 
             No Moving/Panning/Zooming</label>
-            <label className='text-lg mr-2'>Round Limit: <input 
-            type="number" 
-            className='mx-auto ring-1 ring-white w-10 text-center rounded-lg'
-            min={1}
-            max={10}
-            onChange={totalRounds => setTotalRounds(Number(totalRounds.target.value))}
-            value={totalRounds}
-          />
+            <label className='text-lg mr-2 flex items-center gap-2'>Round Limit: 
+            <input 
+              type="number" 
+              className='w-14 h-8 text-center rounded-lg ring-2 ring-white'
+              min={1}
+              max={10}
+              onChange={totalRounds => setTotalRounds(Number(totalRounds.target.value))}
+              value={totalRounds}
+            />
             </label>
         </div>
         </div>
@@ -1001,7 +1002,9 @@ function Geo() {
       }
       </div>
       )}
-      <div className='bottom-0' ref={divRef}></div>
+      
+      {/* Scroll target div */}
+      <div ref={divRef} className="absolute bottom-0"></div>
       </div>
       
   )
