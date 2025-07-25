@@ -48,6 +48,7 @@ function Geo() {
   const queryClient = useQueryClient();
   const divRef = useRef<HTMLDivElement>(null);
   const panoramaRef = useRef<google.maps.StreetViewPanorama | null>(null);
+  const totalRounds = 5;
 
   const { data, isError, isFetching, refetch } = useQuery({
     queryKey: ['maps'],
@@ -711,9 +712,9 @@ function Geo() {
 
   return (
     <div className='h-screen w-full'>
-      { gameStarted && !showFinalResults && <p className='absolute top-0 left-0 p-2 z-50 bg-blue-500 rounded-lg ring-2 ring-white text-white text-2xl translate-x-4 translate-y-4 '>Score: {score}</p> }
-      { gameStarted && !showFinalResults && <p className='absolute top-0 right-0 p-2 z-50 bg-blue-500 rounded-lg ring-2 ring-white text-white text-2xl -translate-x-4 translate-y-4 '>Round: {roundNumber}</p> }
-      {showResultsMap ? <div className='absolute top-8 left-[50%] p-2 z-50 bg-green-500 rounded-lg ring-2 ring-white text-white text-4xl font-semibold -translate-x-[50%]'>{scoreAlert}<div className='text-xl text-center'>{distanceDisplay} KM AWAY</div></div> : ''}
+      { gameStarted && !showFinalResults && <p className='absolute top-0 left-0 p-2 z-50 bg-gradient-to-bl from-sky-400 to-blue-500 rounded-lg ring-2 ring-white text-white text-2xl translate-x-4 translate-y-4 '>Score: {score}</p> }
+      { gameStarted && !showFinalResults && <p className='absolute top-0 right-0 p-2 z-50 bg-gradient-to-br from-sky-400 to-blue-500 rounded-lg ring-2 ring-white text-white text-2xl -translate-x-4 translate-y-4 '>Round: {roundNumber}/{totalRounds}</p> }
+      {showResultsMap ? <div className='absolute top-8 left-[50%] p-2 z-50 bg-gradient-to-bl from-lime-400 to-green-600 rounded-lg ring-2 ring-white text-white text-4xl font-semibold -translate-x-[50%]'>{scoreAlert}<div className='text-xl text-center'>{distanceDisplay} KM AWAY</div></div> : ''}
 
       {/* Show loading/black screen when no location is loaded or loading */}
       {(!currentLocation || isLoading) && (
@@ -737,7 +738,7 @@ function Geo() {
             <p className='text-lg mb-4'>Score points based on how close your guess is to the actual location.</p>
             <p className='text-lg mb-8'>There are 5 rounds, each with a different location to guess.</p>
           <button onClick={() => startGame()}
-            className="p-4 ring-2 ring-white rounded-full z-40 items-center justify-center bg-gradient-to-bl from-lime-400 to-green-600 hover:bg-white hover:bg-opacity-30 transition-colors duration-300 text-white text-2xl font-semibold"
+            className="p-4 ring-2 ring-white rounded-full z-40 items-center justify-center bg-gradient-to-bl from-lime-400 to-green-600 hover:scale-110 transition-transform duration-100 text-white text-2xl font-semibold"
           >Start Random Game</button>
 
         <p className='text-xl mb-4 mt-8'>Or try an AI generated set of locations:</p>
@@ -760,7 +761,7 @@ function Geo() {
             className={` ring-blue-400 ring-2 rounded-md p-2 m-2 bg-white ${userHasTyped ? 'text-black' : 'text-gray-500'} `}
           /></label>
           <div className="place-self-center m-10">
-          { !data && <button className={`bg-gradient-to-bl from-lime-400 to-green-600 font-medium text-2xl rounded-full p-4 ring-white ring-2 m-10 flex items-center gap-3`}
+          { !data && <button className={`bg-gradient-to-bl from-lime-400 to-green-600 font-medium text-2xl rounded-full p-4 ring-white ring-2 m-10 flex items-center gap-3 hover:scale-110 transition-transform duration-100`}
             onClick={handleSubmit}
             disabled={ isFetching }>
             { isFetching && (
@@ -772,7 +773,7 @@ function Geo() {
             { isFetching ? 'Generating' : 'Generate' }
           </button> }
           { data && 
-          <button className={`bg-gradient-to-bl from-lime-400 to-green-600 font-medium text-2xl rounded-full p-4 ring-white ring-2`}
+          <button className={`bg-gradient-to-bl from-lime-400 to-green-600 font-medium text-2xl rounded-full p-4 ring-white ring-2 hover:scale-110 transition-transform duration-100`}
             onClick={startAIGame}
             disabled={ isFetching }>
             Start AI Game
@@ -787,13 +788,13 @@ function Geo() {
       {/* back to start button */}
       {gameStarted && (
       <button onClick={() => returnToStart()}
-        className="absolute bottom-32 left-6 p-1 ring-2 ring-white rounded-lg z-40 items-center justify-center bg-gray-500 bg-opacity-60"
+        className="absolute bottom-32 left-6 p-1 ring-2 ring-white rounded-lg z-40 items-center justify-center bg-gray-500 bg-opacity-60 hover:scale-110 transition-transform duration-100"
       ><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-rotate-ccw-icon lucide-rotate-ccw inline"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
         Start</button>)}
       
       {/* Custom Compass - only show when location is loaded */}
       {currentLocation && gameStarted && (
-        <div className='absolute bottom-8 left-4 z-30 w-20 h-20 bg-black bg-opacity-60 rounded-full flex items-center justify-center border-2 border-white'>
+        <div className='absolute bottom-8 left-4 z-30 w-20 h-20 bg-black bg-opacity-60 rounded-full flex items-center justify-center border-2 border-white hover:scale-125 transition-transform duration-100'>
           <div className='relative w-16 h-16'>
             {/* Compass circle */}
             <div className='absolute inset-0 rounded-full  bg-gray-800'></div>
@@ -834,7 +835,7 @@ function Geo() {
           <Map
       zoom={mapZoom}
       center={mapCenter}
-      mapId="DEMO_MAP_ID"
+      mapId="1dc738fa066206d4ca042a08"
       mapTypeControl={false}
       streetViewControl={false}
       keyboardShortcuts={false}
@@ -886,37 +887,37 @@ function Geo() {
         </APIProvider>
         {/* zoom buttons */}
         {expanded === -1 && !showResultsMap && !showFinalResults ? (
-          <button className='absolute top-0 left-0 bg-gray-500 bg-opacity-40 text-white  px-2 rounded text-2xl' onClick={expandMap} disabled={showResultsMap}>
+          <button className='absolute top-0 left-0 bg-gray-500 bg-opacity-40 text-white rounded-full text-2xl/3 p-1' onClick={expandMap} disabled={showResultsMap}>
             +
           </button>
         ) : ''}
         {expanded === 0 && !showResultsMap && !showFinalResults ? (
           <div className='flex absolute top-0 left-0'>
-          <button className=' bg-gray-500 bg-opacity-40 text-white  px-2 rounded text-2xl' onClick={expandMap} disabled={showResultsMap}>
+          <button className=' bg-gray-500 bg-opacity-40 text-white rounded-full text-2xl/3 p-1' onClick={expandMap} disabled={showResultsMap}>
           +
           </button>
-          <button className='bg-gray-500 bg-opacity-40 text-white  px-2 rounded text-2xl' onClick={expandMap} disabled={showResultsMap}>
+          <button className='bg-gray-500 bg-opacity-40 text-white rounded-full text-2xl/3 p-1' onClick={expandMap} disabled={showResultsMap}>
           -
         </button>
         </div>
         ) : ''}
         {expanded === 1 && !showResultsMap && !showFinalResults ? (
           <div className='flex absolute top-0 left-0'>
-          <button className=' bg-gray-500 bg-opacity-40 text-white  px-2 rounded text-2xl' onClick={expandMap} disabled={showResultsMap}>
+          <button className=' bg-gray-500 bg-opacity-40 text-white rounded-full text-2xl/3 p-1' onClick={expandMap} disabled={showResultsMap}>
           +
           </button>
-          <button className='bg-gray-500 bg-opacity-40 text-white  px-2 rounded text-2xl' onClick={expandMap} disabled={showResultsMap}>
+          <button className='bg-gray-500 bg-opacity-40 text-white rounded-full text-2xl/3 p-1' onClick={expandMap} disabled={showResultsMap}>
           -
         </button>
         </div>
         ) : ''}
         {expanded === 2 && !showResultsMap && !showFinalResults ?
-        <button className='absolute top-0 left-0 bg-gray-500 bg-opacity-40 text-white  px-2 rounded text-2xl' onClick={expandMap} disabled={showResultsMap}>
+        <button className='absolute top-0 left-0 bg-gray-500 bg-opacity-40 text-white  rounded-full text-2xl/3 p-1' onClick={expandMap} disabled={showResultsMap}>
           -
         </button> : ''}
         {!showResultsMap && !showFinalResults ? (
           <button 
-            className='absolute bottom-1 left-1 bg-gradient-to-bl from-lime-400 to-green-600 text-white px-3 rounded-full text-xl ring-2 ring-white disabled:bg-gray-500 disabled:text-gray-400' 
+            className='absolute bottom-1 left-1 bg-gradient-to-bl from-lime-400 to-green-600 text-white px-3 rounded-full text-xl ring-2 ring-white disabled:bg-gray-500 disabled:bg-none disabled:text-gray-400 hover:scale-110 transition-transform duration-100' 
             onClick={() => submitGuess()}
             disabled={isLoading || !marker}
           >
@@ -925,7 +926,7 @@ function Geo() {
         ) : 
           (roundNumber <= 5 ? (
             <button 
-              className='absolute bottom-0 block bg-gradient-to-bl from-sky-400 to-blue-600 text-white p-2 px-4 rounded-full text-3xl ring-2 ring-white animate-pulse -translate-y-3' 
+              className='absolute bottom-0 block bg-gradient-to-bl from-sky-400 to-blue-600 text-white p-2 px-4 rounded-full text-3xl ring-2 ring-white animate-pulse -translate-y-3 hover:animate-none hover:scale-110 transition-transform duration-100' 
               onClick={() => nextRound()}
             >
               { roundNumber < 5 &&  'Next Round' }
@@ -933,7 +934,7 @@ function Geo() {
             </button>
           ) : (
             <button 
-              className='absolute bottom-0 block bg-gradient-to-bl from-sky-400 to-blue-600 text-white p-2 px-4 rounded-full text-3xl ring-2 ring-white animate-pulse -translate-y-3' 
+              className='absolute bottom-0 block bg-gradient-to-bl from-sky-400 to-blue-600 text-white p-2 px-4 rounded-full text-3xl ring-2 ring-white animate-pulse -translate-y-3 hover:animate-none hover:scale-110 transition-transform duration-100' 
               onClick={() => restartGame()}
             >
               End Game
