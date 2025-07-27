@@ -34,4 +34,6 @@ export interface MapsData {
 
 export interface Location {
     location: string[];
+    explanation: string;
+    fact: string;
 }

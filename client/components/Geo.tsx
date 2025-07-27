@@ -730,6 +730,8 @@ function Geo() {
       }
     }, [userHasTyped, gameStarted]);
 
+    console.log(data?.locations[roundNumber - 1].fact)
+
   return (
     <div className='h-screen w-full'>
       { gameStarted && !showFinalResults && <p className='absolute top-0 left-0 p-2 z-50 bg-gradient-to-bl from-sky-400 to-blue-500 rounded-lg ring-2 ring-white text-white text-2xl translate-x-4 translate-y-4 '>Score: {score}</p> }
@@ -869,6 +871,9 @@ function Geo() {
 
       {showFinalResults && (<h2 className='text-6xl font-bold absolute top-4 z-50 left-1/2 -translate-x-1/2'>Final Score: <span className='text-green-500'>{score}</span>/{totalRounds*100}</h2>)}
       {showFinalResults && (<h2 className='text-4xl font-bold p-4 bg-green-500 ring-2 ring-white rounded-xl absolute bottom-20 z-50 left-1/2 -translate-x-1/2'>Final Score: {score}</h2>)}
+      {showResultsMap && (<h3 className='text-xl font-semibold p-4 bg-gradient-to-bl from-violet-400 to-indigo-600 ring-2 ring-white rounded-xl z-50 max-w-60 absolute bottom-32 right-32 shadow-lg shadow-black'><div className='font-bold text-3xl text-center border-b-2 border-white mb-3'>Fun Fact:</div>{data?.locations[roundNumber - 1].fact}</h3>)}
+
+      {/* Map Controls */}
       
       {/* Street View Panorama */}
       <div 

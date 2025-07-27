@@ -192,9 +192,13 @@ Return exactly 5 addresses in JSON format. Each address must be a perfect match 
                     explanation: {
                       type: Type.STRING,
                       description: 'reasoning behind the choice made, including how each location relates to the theme and why it was chosen.',
+                    },
+                    fact: {
+                      type: Type.STRING,
+                      description: 'a fun fact or interesting detail about the location.',
                     }
                   },
-                  required: ['location', 'explanation'],
+                  required: ['location', 'explanation', 'fact'],
                 },
                 minItems: totalRounds ? totalRounds + 1 : 6,
                 maxItems: totalRounds ? totalRounds + 1 : 6,
