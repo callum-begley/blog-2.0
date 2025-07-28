@@ -771,6 +771,8 @@ function Geo() {
           <input
             onChange={handleLocation}
             value={location}
+            onFocus={() => setLocation('')}
+            onBlur={() => {location === '' && setLocation('Anywhere')}}
             type="text"
             name='input'
             className='text-black ring-blue-400  ring-2 rounded-md p-2 m-2 bg-white'
@@ -780,6 +782,7 @@ function Geo() {
             onChange={handleTheme}
             value={userHasTyped ? theme : themeScroll}
             onFocus={() => setUserHasTyped(true)}
+            onBlur={() => {theme === '' && setUserHasTyped(false)}}
             type="text"
             name='input'
             className={` ring-blue-400 ring-2 rounded-md p-2 m-2 bg-white ${userHasTyped ? 'text-black' : 'text-gray-500'} `}
