@@ -51,6 +51,7 @@ function Geo() {
   const [totalRounds, setTotalRounds] = useState(5);
   const [moving, setMoving] = useState(true);
   const [panZoom, setPanZoom] = useState(true);
+  const [factNum, setFactNum] = useState(0);
 
   const { data, isError, isFetching, refetch } = useQuery({
     queryKey: ['maps'],
@@ -732,8 +733,20 @@ function Geo() {
 
     console.log(data?.locations[roundNumber - 1].fact)
 
+    const handleFact = (direction: string) => {
+      if (direction === 'next' && factNum < totalRounds - 1) {
+        setFactNum((prev) => (prev + 1));
+      } else if (direction === 'prev' && factNum > 0) {
+        setFactNum((prev) => (prev - 1));
+      } else if (direction === 'next' && factNum === totalRounds - 1) {
+        setFactNum(0);
+      } else if (direction === 'prev' && factNum === 0) {
+        setFactNum(totalRounds - 1);
+      }
+    }
+
   return (
-    <div className='h-screen w-full'>
+    <div className='h-screen w-full select-none' >
       { gameStarted && !showFinalResults && <p className='absolute top-0 left-0 p-2 z-50 bg-gradient-to-bl from-sky-400 to-blue-500 rounded-lg ring-2 ring-white text-white text-2xl translate-x-4 translate-y-4 '>Score: {score}</p> }
       { gameStarted && !showFinalResults && <p className='absolute top-0 right-0 p-2 z-50 bg-gradient-to-br from-sky-400 to-blue-500 rounded-lg ring-2 ring-white text-white text-2xl -translate-x-4 translate-y-4 '>Round: {roundNumber}/{totalRounds}</p> }
       {showResultsMap ? <div className='absolute top-8 left-[50%] p-2 z-50 bg-gradient-to-bl from-lime-400 to-green-600 rounded-lg ring-2 ring-white text-white text-4xl font-semibold -translate-x-[50%]'>{scoreAlert}<div className='text-xl text-center'>{distanceDisplay} KM AWAY</div></div> : ''}
@@ -872,9 +885,18 @@ function Geo() {
         </div>
       )}
 
-      {showFinalResults && (<h2 className='text-6xl font-bold absolute top-4 z-50 left-1/2 -translate-x-1/2'>Final Score: <span className='text-green-500'>{score}</span>/{totalRounds*100}</h2>)}
-      {showFinalResults && (<h2 className='text-4xl font-bold p-4 bg-green-500 ring-2 ring-white rounded-xl absolute bottom-20 z-50 left-1/2 -translate-x-1/2'>Final Score: {score}</h2>)}
-      {showResultsMap && (<h3 className='text-xl font-semibold p-4 bg-gradient-to-bl from-violet-400 to-indigo-600 ring-2 ring-white rounded-xl z-50 max-w-60 absolute bottom-32 right-32 shadow-lg shadow-black'><div className='font-bold text-3xl text-center border-b-2 border-white mb-3'>Fun Fact:</div>{data?.locations[roundNumber - 1].fact}</h3>)}
+      {showFinalResults && (<h2 className='text-6xl font-bold absolute top-4 z-50 left-1/2 -translate-x-1/2'>Final Score: <span className='text-green-400'>{score}</span>/{totalRounds*100}</h2>)}
+
+      {showResultsMap && data?.locations[roundNumber - 1].fact && (<h3 className='text-xl font-semibold p-4 bg-gradient-to-bl from-violet-400 to-indigo-600 ring-2 ring-white rounded-xl z-50 max-w-60 absolute bottom-32 right-32 shadow-lg shadow-black'><div className='font-bold text-3xl text-center border-b-2 border-white mb-3'>Fun Fact:</div>{data?.locations[roundNumber - 1].fact}</h3>)}
+
+      {showFinalResults && data?.locations[0].fact && (<h3 className='text-xl font-semibold p-4 bg-gradient-to-bl from-violet-400 to-indigo-600 ring-2 ring-white rounded-xl z-50 max-w-60 absolute bottom-32 right-32 shadow-lg shadow-black'>
+        <div className='font-bold text-3xl text-center border-b-2 border-white mb-3'>Fun Facts:</div>
+        <div className='flex justify-between mb-2'>
+          <button onClick={() => handleFact('prev')} className='hover:scale-150 transition-transform duration-100'><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-chevron-left-icon lucide-chevron-left"><path d="m15 18-6-6 6-6"/></svg></button>
+          <p>Round: {factNum + 1}</p>
+          <button onClick={() => handleFact('next')} className='hover:scale-150 transition-transform duration-100'><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-chevron-right-icon lucide-chevron-right"><path d="m9 18 6-6-6-6"/></svg></button>
+        </div>
+        {data?.locations[factNum].fact}</h3>)}
 
       {/* Map Controls */}
       
