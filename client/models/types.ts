@@ -33,7 +33,7 @@ export interface MapsData {
 }
 
 export interface Location {
-    location: string[];
+    location: string;
     explanation: string;
     fact: string;
 }

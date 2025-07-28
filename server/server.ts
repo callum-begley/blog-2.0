@@ -7,6 +7,7 @@ import { Data } from '../client/models/types'
 if (process.env.NODE_ENV !== 'production'){
   const dotenv = await  import('dotenv')
   dotenv.config()
+  console.log('Environment loaded. GOOGLE_MAPS_API_KEY:', process.env.GOOGLE_MAPS_API_KEY ? 'SET' : 'NOT SET')
 }
 const genAI = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY })
 const server = express()
@@ -218,9 +219,109 @@ Return exactly 5 addresses in JSON format. Each address must be a perfect match 
 
     const locations: Data = JSON.parse(formatted)
 
-    res.json({ locations: locations })
+    res.json(locations)
   }} catch (error) {
     res.status(500).json({ error: 'Failed to generate locations' })
+  }
+})
+
+// Server-side geocoding endpoint to replace client-side Google Maps API calls
+server.get('/api/v1/geocode', async (req, res) => {
+  try {
+    if (!process.env.GOOGLE_MAPS_API_KEY) {
+      return res.status(500).json({ error: 'Google Maps API key not configured' })
+    }
+
+    const { address } = req.query
+    if (!address) {
+      return res.status(400).json({ error: 'Address parameter required' })
+    }
+
+    const response = await fetch(
+      `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(address as string)}&key=${process.env.GOOGLE_MAPS_API_KEY}`
+    )
+
+    if (!response.ok) {
+      console.error('HTTP Error from Google API:', response.status, response.statusText)
+      return res.status(500).json({ error: 'Geocoding service error' })
+    }
+
+    const data = await response.json()
+    console.log('Google Geocoding API response:', data)
+    
+    if (data.status === 'OK' && data.results && data.results.length > 0) {
+      const location = data.results[0].geometry.location
+      res.json({
+        success: true,
+        coordinates: {
+          lat: location.lat,
+          lng: location.lng
+        },
+        formatted_address: data.results[0].formatted_address
+      })
+    } else {
+      res.status(404).json({ 
+        success: false, 
+        error: 'Address not found',
+        status: data.status 
+      })
+    }
+  } catch (error) {
+    console.error('Geocoding error:', error)
+    res.status(500).json({ error: 'Failed to geocode address' })
+  }
+})
+
+// Server-side Street View metadata endpoint
+server.get('/api/v1/streetview/metadata', async (req, res) => {
+  try {
+    if (!process.env.GOOGLE_MAPS_API_KEY) {
+      return res.status(500).json({ error: 'Google Maps API key not configured' })
+    }
+
+    const { lat, lng, radius = 50000 } = req.query
+    if (!lat || !lng) {
+      return res.status(400).json({ error: 'Latitude and longitude parameters required' })
+    }
+
+    const response = await fetch(
+      `https://maps.googleapis.com/maps/api/streetview/metadata?location=${lat},${lng}&radius=${radius}&key=${process.env.GOOGLE_MAPS_API_KEY}`
+    )
+
+    if (!response.ok) {
+      return res.status(500).json({ error: 'Street View service error' })
+    }
+
+    const data = await response.json()
+    res.json(data)
+  } catch (error) {
+    console.error('Street View metadata error:', error)
+    res.status(500).json({ error: 'Failed to get Street View metadata' })
+  }
+})
+
+// Endpoint to serve Google Maps API key to authenticated frontend
+server.get('/api/v1/maps-key', async (req, res) => {
+  try {
+    if (!process.env.GOOGLE_MAPS_API_KEY) {
+      return res.status(500).json({ error: 'Google Maps API key not configured' })
+    }
+    
+    // Basic referrer check (add your domain in production)
+    const referrer = req.get('Referer') || req.get('Origin')
+    const allowedDomains = ['localhost', '127.0.0.1', 'yourdomain.com'] // Add your actual domain
+    
+    if (referrer) {
+      const isAllowed = allowedDomains.some(domain => referrer.includes(domain))
+      if (!isAllowed) {
+        return res.status(403).json({ error: 'Unauthorized domain' })
+      }
+    }
+    
+    res.json({ apiKey: process.env.GOOGLE_MAPS_API_KEY })
+  } catch (error) {
+    console.error('Error serving Maps API key:', error)
+    res.status(500).json({ error: 'Failed to get Maps API key' })
   }
 })
 

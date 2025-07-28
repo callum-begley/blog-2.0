@@ -3,6 +3,7 @@ import {APIProvider, Map, MapCameraChangedEvent, AdvancedMarker, MapMouseEvent, 
 import { MapsData } from '../models/types';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { getLocations } from '../apiClient';
+import { useGoogleMapsKey } from '../hooks/useGoogleMapsKey';
 
 // Helper component to access map instance
 const MapHelper = ({ onMapReady }: { onMapReady: (map: google.maps.Map) => void }) => {
@@ -53,7 +54,10 @@ function Geo() {
   const [panZoom, setPanZoom] = useState(true);
   const [factNum, setFactNum] = useState(0);
 
-  const { data, isError, isFetching, refetch } = useQuery({
+  // Fetch Google Maps API key from backend
+  const { apiKey, loading: keyLoading, error: keyError } = useGoogleMapsKey();
+
+  const { data, isError, isFetching, refetch, error } = useQuery({
     queryKey: ['maps'],
     queryFn: async () => {
       const data: MapsData = await getLocations(location, theme, totalRounds)
@@ -61,8 +65,9 @@ function Geo() {
     },
     enabled: false,
     staleTime: 0,
+    retry: 2,
+    retryDelay: 1000,
   })
-  if (isError) console.log('error loading ai maps data')
 
 
   const getRandomCoordinates = () => {
@@ -123,7 +128,6 @@ function Geo() {
         // Check if panorama has a location property (indicates valid Street View data)
         const panoramaLocation = panorama.getLocation();
         if (!panoramaLocation) {
-          console.warn('Panorama loaded but has no location data (black screen), retrying...');
           if (retryCallback) {
             retryCallback();
             return;
@@ -131,7 +135,6 @@ function Geo() {
         }
 
       } else if (status === google.maps.StreetViewStatus.ZERO_RESULTS) {
-        console.warn('No Street View found at exact coordinates, trying fallback with larger radius');
         
         // If we have a retry callback (for AI locations), try to find Street View with larger radius
         if (retryCallback) {
@@ -143,13 +146,11 @@ function Geo() {
           
           const tryWithRadius = () => {
             if (radiusIndex >= radii.length) {
-              console.error('No Street View found even with largest radius, calling retry callback');
               retryCallback();
               return;
             }
             
             const radius = radii[radiusIndex];
-            console.log(`Trying Street View search with ${radius}m radius...`);
             
             streetViewService.getPanorama({
               location: position,
@@ -162,12 +163,10 @@ function Geo() {
                   lat: data.location.latLng.lat(),
                   lng: data.location.latLng.lng()
                 };
-                console.log(`Found Street View at ${radius}m radius:`, foundLocation);
                 
                 // Update panorama to the found location
                 panorama.setPosition(foundLocation);
               } else {
-                console.log(`No Street View found at ${radius}m radius, trying next radius...`);
                 radiusIndex++;
                 tryWithRadius();
               }
@@ -218,7 +217,6 @@ function Geo() {
 
   const findRandomStreetViewLocation = useCallback(async () => {
     if (!mapsLoaded || !window.google) {
-      console.log('Google Maps not loaded yet');
       return null;
     }
     
@@ -228,9 +226,7 @@ function Geo() {
 
     const tryRandomLocation = async (): Promise<{lat: number, lng: number} | null> => {
       if (attempts >= maxAttempts) {
-        console.log('Max attempts reached, using fallback location');
         return { lat: -20.152288051191736, lng: -67.47815303851836 }; // fallback
-        // Antarctica: -65.1172937, lng: -63.9998866
       }
       
 
@@ -332,6 +328,29 @@ function Geo() {
     return polyline;
   }, []);
 
+  // Helper function to handle AI location fallback
+  const tryLoadAILocation = useCallback((coordinates: Array<{lat: number, lng: number}>, index: number) => {
+    if (index >= coordinates.length) {
+      // No more AI locations, fallback to random
+      setIsAI(false);
+      loadRandomLocation();
+      return;
+    }
+    
+    setCurrentAiLocationIndex(index);
+    setCurrentLocation(coordinates[index]);
+    setIsLoading(true);
+    
+    setTimeout(() => {
+      createStreetViewPanorama(coordinates[index], () => {
+        // If this location fails, try the next one
+        setIsLoading(false);
+        tryLoadAILocation(coordinates, index + 1);
+      });
+      setIsLoading(false);
+    }, 1000);
+  }, [createStreetViewPanorama, loadRandomLocation]);
+
   useEffect(() => {
     // Load random location when maps are loaded for non-AI games
     if (mapsLoaded && !isAI && !hasLoadedInitialLocation) {
@@ -339,6 +358,90 @@ function Geo() {
       setHasLoadedInitialLocation(true);
     }
   }, [mapsLoaded, hasLoadedInitialLocation, loadRandomLocation, isAI]);
+
+  // Load AI locations when maps become available and we're in AI mode
+  useEffect(() => {
+    if (mapsLoaded && isAI && gameStarted && data && data.locations && data.locations.length > 0) {
+      
+      // Call loadAILocations logic directly here to avoid circular dependency
+      setIsLoading(true);
+      
+      // Use client-side Google Maps Geocoder instead of server-side geocoding
+      if (!window.google || !window.google.maps) {
+        setIsLoading(false);
+        setIsAI(false);
+        loadRandomLocation();
+        return;
+      }
+      
+      const geocoder = new google.maps.Geocoder();
+      const addresses = data.locations.map(location => String(location.location));
+      
+      // Geocode all addresses using Google Maps API
+      Promise.all(
+        addresses.map(address => 
+          new Promise<{lat: number, lng: number} | null>((resolve) => {
+            geocoder.geocode({ address }, (results, status) => {
+              if (status === 'OK' && results && results[0]) {
+                const location = results[0].geometry.location;
+                resolve({
+                  lat: location.lat(),
+                  lng: location.lng()
+                });
+              } else {
+                resolve(null);
+              }
+            });
+          })
+        )
+      )
+        .then(coordinatesWithNulls => {
+          // Filter out null results
+          const coordinates = coordinatesWithNulls.filter(coord => coord !== null) as Array<{lat: number, lng: number}>;
+          
+          if (coordinates.length === 0) {
+            setIsLoading(false);
+            setIsAI(false);
+            loadRandomLocation();
+            return;
+          }
+
+          setAiLocations(coordinates);
+          setCurrentAiLocationIndex(0);
+          
+          // Load the first AI location
+          if (coordinates.length > 0) {
+            setCurrentLocation(coordinates[0]);
+            
+            // Initialize the panorama with the first AI location at exact coordinates
+            setTimeout(() => {
+              createStreetViewPanorama(coordinates[0], () => {
+                // If first AI location fails, try the next one
+                if (coordinates.length > 1) {
+                  setCurrentAiLocationIndex(1);
+                  setCurrentLocation(coordinates[1]);
+                  createStreetViewPanorama(coordinates[1], () => {
+                    // If second also fails, continue to next or fallback to random
+                    tryLoadAILocation(coordinates, 2);
+                  });
+                } else {
+                  // No more AI locations, fallback to random
+                  setIsAI(false);
+                  loadRandomLocation();
+                }
+              });
+              setIsLoading(false);
+            }, 1000);
+          }
+        })
+        .catch(() => {
+          setIsLoading(false);
+          setIsAI(false); // Reset AI flag since we're falling back
+          // Fallback to random location if geocoding fails
+          loadRandomLocation();
+        });
+    }
+  }, [mapsLoaded, isAI, gameStarted, data, loadRandomLocation, createStreetViewPanorama, tryLoadAILocation]);
 
     // Effect to create polylines for final results
   useEffect(() => {
@@ -469,30 +572,23 @@ function Geo() {
     resetGameState();
     setIsAI(true); // Reset after resetGameState since it sets isAI to false
     
-    // Function to check if Google Maps is fully loaded
-    const checkGoogleMapsReady = () => {
-      return window.google && 
-             window.google.maps && 
-             window.google.maps.Geocoder && 
-             window.google.maps.StreetViewPanorama;
-    };
-    
-    // Try to load AI locations with retries
-    const attemptLoadAILocations = (retries = 5) => {
-      if (checkGoogleMapsReady()) {
-        console.log('Google Maps ready, loading AI locations...');
-        loadAILocations();
-      } else if (retries > 0) {
-        console.log(`Google Maps not ready, retrying in 500ms... (${retries} attempts left)`);
-        setTimeout(() => attemptLoadAILocations(retries - 1), 500);
-      } else {
-        console.error('Google Maps failed to load after multiple attempts, falling back to random location');
-        setIsAI(false); // Reset AI flag since we're falling back
-        loadRandomLocation();
+    // Check if we have data and Google Maps is loaded
+    if (data && data.locations && data.locations.length > 0) {
+      
+      // Ensure Google Maps is loaded before proceeding
+      if (!mapsLoaded) {
+        // Return here and let a different mechanism handle the loading
+        return;
       }
-    };
-    
-    attemptLoadAILocations();
+      
+      // Call loadAILocations directly since we know maps are loaded
+      setTimeout(() => {
+        loadAILocations();
+      }, 100); // Small delay to ensure everything is ready
+    } else {
+      setIsAI(false);
+      loadRandomLocation();
+    }
   };
 
   const returnToStart = useCallback(() => {
@@ -574,71 +670,50 @@ function Geo() {
     refetch();
   };
 
-  // Helper function to handle AI location fallback
-  const loadNextAILocationWithFallback = useCallback((coordinates: Array<{lat: number, lng: number}>, startIndex: number) => {
-    if (startIndex >= coordinates.length) {
-      // No more AI locations, fallback to random
-      console.log('All AI locations exhausted, falling back to random');
-      setIsAI(false);
-      loadRandomLocation();
-      return;
-    }
-    
-    setCurrentAiLocationIndex(startIndex);
-    setCurrentLocation(coordinates[startIndex]);
-    setIsLoading(true);
-    
-    setTimeout(() => {
-      createStreetViewPanorama(coordinates[startIndex], () => {
-        // If this location fails, try the next one
-        console.log(`AI location ${startIndex + 1} failed, trying next...`);
-        setIsLoading(false);
-        loadNextAILocationWithFallback(coordinates, startIndex + 1);
-      });
-      setIsLoading(false);
-    }, 1000);
-  }, [createStreetViewPanorama, loadRandomLocation]);
-
   const loadAILocations = useCallback(() => {
-    if (!window.google || !window.google.maps || !window.google.maps.Geocoder) {
-      console.error('Google Maps API components not fully loaded yet');
-      // Fallback to random location
-      setIsAI(false);
-      loadRandomLocation();
-      return;
-    }
-
     if (data && data.locations) {
       setIsLoading(true);
       
-      // Use Google's Geocoding service to convert addresses to coordinates
+      // Use client-side Google Maps Geocoder instead of server-side geocoding
+      if (!window.google || !window.google.maps) {
+        setIsLoading(false);
+        setIsAI(false);
+        loadRandomLocation();
+        return;
+      }
+      
       const geocoder = new google.maps.Geocoder();
-      const locationPromises = data.locations.map((location, index) => {
-        return new Promise<{lat: number, lng: number}>((resolve, reject) => {
-          // Add a delay for ALL requests, including the first one
-          setTimeout(() => {
-            geocoder.geocode({ address: String(location.location) }, (results, status) => {
-              if (status === 'OK' && results?.[0]) {
-                const latLng = results[0].geometry.location;
-                
-                // Use exact geocoded coordinates without Street View validation
-                const exactCoords = {
-                  lat: latLng.lat(),
-                  lng: latLng.lng()
-                };
-                resolve(exactCoords);
+      const addresses = data.locations.map(location => String(location.location));
+      
+      // Geocode all addresses using Google Maps API
+      Promise.all(
+        addresses.map(address => 
+          new Promise<{lat: number, lng: number} | null>((resolve) => {
+            geocoder.geocode({ address }, (results, status) => {
+              if (status === 'OK' && results && results[0]) {
+                const location = results[0].geometry.location;
+                resolve({
+                  lat: location.lat(),
+                  lng: location.lng()
+                });
               } else {
-                console.error('Geocoding failed for:', location.location, status);
-                reject(new Error(`Geocoding failed for ${location.location}: ${status}`));
+                resolve(null);
               }
             });
-          }, (index + 1) * 300); // Start from 300ms, then 600ms, 900ms, etc.
-        });
-      });
+          })
+        )
+      )
+        .then(coordinatesWithNulls => {
+          // Filter out null results
+          const coordinates = coordinatesWithNulls.filter(coord => coord !== null) as Array<{lat: number, lng: number}>;
+          
+          if (coordinates.length === 0) {
+            setIsLoading(false);
+            setIsAI(false);
+            loadRandomLocation();
+            return;
+          }
 
-      // Wait for all addresses to be geocoded
-      Promise.all(locationPromises)
-        .then(coordinates => {
           setAiLocations(coordinates);
           setCurrentAiLocationIndex(0);
           
@@ -650,18 +725,15 @@ function Geo() {
             setTimeout(() => {
               createStreetViewPanorama(coordinates[0], () => {
                 // If first AI location fails, try the next one
-                console.log('First AI location failed, trying next location...');
                 if (coordinates.length > 1) {
                   setCurrentAiLocationIndex(1);
                   setCurrentLocation(coordinates[1]);
                   createStreetViewPanorama(coordinates[1], () => {
                     // If second also fails, continue to next or fallback to random
-                    console.log('Second AI location also failed, continuing...');
-                    loadNextAILocationWithFallback(coordinates, 2);
+                    tryLoadAILocation(coordinates, 2);
                   });
                 } else {
                   // No more AI locations, fallback to random
-                  console.log('No more AI locations available, falling back to random');
                   setIsAI(false);
                   loadRandomLocation();
                 }
@@ -670,19 +742,17 @@ function Geo() {
             }, 1000);
           }
         })
-        .catch(error => {
-          console.error('Error geocoding AI locations:', error);
+        .catch(() => {
           setIsLoading(false);
           setIsAI(false); // Reset AI flag since we're falling back
           // Fallback to random location if geocoding fails
           loadRandomLocation();
         });
     } else {
-      console.log('No AI locations data available, loading random location');
       setIsAI(false);
       loadRandomLocation();
     }
-  }, [data, loadRandomLocation, createStreetViewPanorama, loadNextAILocationWithFallback]);
+  }, [data, loadRandomLocation, createStreetViewPanorama, tryLoadAILocation]);
 
   const loadNextAILocation = useCallback(() => {
     if (!isAI || !aiLocations.length) return;
@@ -699,14 +769,13 @@ function Geo() {
       setTimeout(() => {
         createStreetViewPanorama(nextLocation, () => {
           // If this AI location fails, try the next one
-          console.log(`AI location ${nextIndex + 1} failed, trying next...`);
           setIsLoading(false);
-          loadNextAILocationWithFallback(aiLocations, nextIndex + 1);
+          tryLoadAILocation(aiLocations, nextIndex + 1);
         });
         setIsLoading(false);
       }, 1000);
     }
-  }, [isAI, aiLocations, currentAiLocationIndex, createStreetViewPanorama, loadNextAILocationWithFallback]);
+  }, [isAI, aiLocations, currentAiLocationIndex, createStreetViewPanorama, tryLoadAILocation]);
 
   useEffect(() => {
       if (divRef.current) {
@@ -731,8 +800,6 @@ function Geo() {
       }
     }, [userHasTyped, gameStarted]);
 
-    console.log(data?.locations[roundNumber - 1].fact)
-
     const handleFact = (direction: string) => {
       if (direction === 'next' && factNum < totalRounds - 1) {
         setFactNum((prev) => (prev + 1));
@@ -752,11 +819,15 @@ function Geo() {
       {showResultsMap ? <div className='absolute top-8 left-[50%] p-2 z-50 bg-gradient-to-bl from-lime-400 to-green-600 rounded-lg ring-2 ring-white text-white text-4xl font-semibold -translate-x-[50%]'>{scoreAlert}<div className='text-xl text-center'>{distanceDisplay} KM AWAY</div></div> : ''}
 
       {/* Show loading/black screen when no location is loaded or loading */}
-      {(!currentLocation || isLoading) && (
+      {(!currentLocation || isLoading || keyLoading) && (
         <div className='absolute top-0 left-0 z-20 h-screen w-full bg-black flex items-center justify-center'>
           <div className='text-white text-2xl flex flex-col items-center gap-4'>
             <div className='animate-spin rounded-full h-16 w-16 border-b-2 border-white'></div>
-            <div>{isLoading ? 'Loading next location...' : 'Loading location...'}</div>
+            <div>
+              {keyLoading ? 'Loading API...' : 
+               isLoading ? 'Loading next location...' : 'Loading location...'}
+            </div>
+            {keyError && <div className='text-red-400 text-lg'>Error: {keyError}</div>}
           </div>
         </div>
       )}
@@ -800,8 +871,19 @@ function Geo() {
             name='input'
             className={` ring-blue-400 ring-2 rounded-md p-2 m-2 bg-white ${userHasTyped ? 'text-black' : 'text-gray-500'} `}
           /></label>
+          
+          {/* Error display */}
+          {isError && (
+            <div className='text-red-300 text-lg mt-4 p-3 bg-red-800 bg-opacity-30 rounded-lg border border-red-400'>
+              <div className='font-semibold'>Error generating locations:</div>
+              <div className='text-sm mt-1'>{error?.message || 'Unknown error occurred'}</div>
+            </div>
+          )}
+          
+          
           <div className="place-self-center mt-10 mb-4">
-          { !data && <button className={`bg-gradient-to-bl from-violet-400 to-indigo-600 font-medium shadow-md shadow-black text-2xl rounded-full p-4 ring-white ring-2 mt-10 flex items-center gap-3 hover:scale-110 transition-transform duration-100`}
+
+          { (!data || isError) && <button className={`bg-gradient-to-bl from-violet-400 to-indigo-600 font-medium shadow-md shadow-black text-2xl rounded-full p-4 ring-white ring-2 mt-10 flex items-center gap-3 hover:scale-110 transition-transform duration-100`}
             onClick={handleSubmit}
             disabled={ isFetching }>
             { isFetching && (
@@ -810,9 +892,9 @@ function Geo() {
                 <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
               </svg>
             )}
-            { isFetching ? 'Generating' : 'Generate' }
+            { isFetching ? 'Generating' : (isError ? 'Retry Generate' : 'Generate') }
           </button> }
-          { data && 
+          { data && data.locations && data.locations.length > 0 && 
           <button className={`bg-gradient-to-bl from-violet-400 to-indigo-600 font-medium shadow-md shadow-black text-2xl rounded-full p-4 ring-white ring-2 hover:scale-110 transition-transform duration-100`}
             onClick={startAIGame}
             disabled={ isFetching }>
@@ -887,7 +969,7 @@ function Geo() {
 
       {showFinalResults && (<h2 className='text-6xl font-bold absolute top-4 z-50 left-1/2 -translate-x-1/2'>Final Score: <span className='text-green-400'>{score}</span>/{totalRounds*100}</h2>)}
 
-      {showResultsMap && data?.locations[roundNumber - 1].fact && (<h3 className='text-xl font-semibold p-4 bg-gradient-to-bl from-violet-400 to-indigo-600 ring-2 ring-white rounded-xl z-50 max-w-60 absolute bottom-32 right-32 shadow-lg shadow-black'><div className='font-bold text-3xl text-center border-b-2 border-white mb-3'>Fun Fact:</div>{data?.locations[roundNumber - 1].fact}</h3>)}
+      {showResultsMap && data?.locations[roundNumber - 1].fact && (<h3 className='text-xl font-semibold p-4 bg-gradient-to-bl from-violet-400 to-indigo-600 ring-2 ring-white rounded-xl z-50 max-w-60 absolute bottom-32 right-32 shadow-lg shadow-black select-text'><div className='font-bold text-3xl text-center border-b-2 border-white mb-3'>Fun Fact:</div>{data?.locations[roundNumber - 1].fact}</h3>)}
 
       {showFinalResults && data?.locations[0].fact && (<h3 className='text-xl font-semibold p-4 bg-gradient-to-bl from-violet-400 to-indigo-600 ring-2 ring-white rounded-xl z-50 max-w-60 absolute bottom-32 right-32 shadow-lg shadow-black'>
         <div className='font-bold text-3xl text-center border-b-2 border-white mb-3'>Fun Facts:</div>
@@ -910,7 +992,7 @@ function Geo() {
       ></div>
       
       {/* Regular Map */}
-      { gameStarted && (
+      { gameStarted && apiKey && !keyLoading && (
       <div 
         //className="dark:bg-black dark:text-white bg-white text-black absolute bottom-0 right-0 z-40" 
         style={ showResultsMap || showFinalResults? {
@@ -919,7 +1001,7 @@ function Geo() {
         } : { width: mapSize.width, height: mapSize.height }}
         className={showResultsMap || showFinalResults ? 'absolute top-0 left-0 z-40 p-20 h-screen w-full bg-blue-500 flex items-center justify-center' : "dark:bg-black dark:text-white bg-white text-black absolute bottom-0 right-0 z-40" }
       >
-        <APIProvider apiKey={import.meta.env.VITE_MAPS_API_KEY || ''} onLoad={() => {
+        <APIProvider apiKey={apiKey} onLoad={() => {
           setMapsLoaded(true);
         }}>
           <div className={`relative h-full w-full [&_.gm-style-cc]:hidden [&_.gm-style]:child:[last-child]:hidden mapCursor ${showResultsMap || showFinalResults? ' rounded-[5rem] overflow-hidden ring-2 ring-white' : ''}`}>

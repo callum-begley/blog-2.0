@@ -14,6 +14,6 @@ export async function getLocations(location: string, theme: string, totalRounds:
     theme: theme,
     totalRounds: totalRounds
   })
-  return res.body.locations as MapsData
+  return res.body as MapsData
 }
 
