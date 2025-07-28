@@ -156,7 +156,7 @@ function Geo() {
               location: position,
               radius: radius,
               source: google.maps.StreetViewSource.GOOGLE,
-              preference: google.maps.StreetViewPreference.BEST
+              preference: google.maps.StreetViewPreference.NEAREST
             }, (data, searchStatus) => {
               if (searchStatus === google.maps.StreetViewStatus.OK && data?.location?.latLng) {
                 const foundLocation = {
