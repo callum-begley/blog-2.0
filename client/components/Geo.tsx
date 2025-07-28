@@ -786,31 +786,31 @@ function Geo() {
     const [themeScroll, setThemeScroll] = useState('Nature');
     const [userHasTyped, setUserHasTyped] = useState(false);
 
-    useEffect(() => {
-      if (!userHasTyped) {
-        const themeArray = ['Nature?', 'Urban?', 'Historical?', 'Beach?', 'Mountains?', 'Desert?', 'Rural?', 'Restaurants?', 'Bridges?'];
-        let currentIndex = 0;
-        
-        const interval = setInterval(() => {
-          currentIndex = (currentIndex + 1) % themeArray.length;
-          setThemeScroll(themeArray[currentIndex]);
-        }, 2000);
+  useEffect(() => {
+    if (!userHasTyped) {
+      const themeArray = ['Nature?', 'Urban?', 'Historical?', 'Beach?', 'Mountains?', 'Desert?', 'Rural?', 'Restaurants?', 'Bridges?'];
+      let currentIndex = 0;
+      
+      const interval = setInterval(() => {
+        currentIndex = (currentIndex + 1) % themeArray.length;
+        setThemeScroll(themeArray[currentIndex]);
+      }, 2000);
 
-        return () => clearInterval(interval);
-      }
-    }, [userHasTyped, gameStarted]);
-
-    const handleFact = (direction: string) => {
-      if (direction === 'next' && factNum < totalRounds - 1) {
-        setFactNum((prev) => (prev + 1));
-      } else if (direction === 'prev' && factNum > 0) {
-        setFactNum((prev) => (prev - 1));
-      } else if (direction === 'next' && factNum === totalRounds - 1) {
-        setFactNum(0);
-      } else if (direction === 'prev' && factNum === 0) {
-        setFactNum(totalRounds - 1);
-      }
+      return () => clearInterval(interval);
     }
+  }, [userHasTyped, gameStarted]);
+
+  const handleFact = (direction: string) => {
+    if (direction === 'next' && factNum < totalRounds - 1) {
+      setFactNum((prev) => (prev + 1));
+    } else if (direction === 'prev' && factNum > 0) {
+      setFactNum((prev) => (prev - 1));
+    } else if (direction === 'next' && factNum === totalRounds - 1) {
+      setFactNum(0);
+    } else if (direction === 'prev' && factNum === 0) {
+      setFactNum(totalRounds - 1);
+    }
+  }
 
   return (
     <div className='h-screen w-full select-none' >

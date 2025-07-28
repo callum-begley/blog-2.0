@@ -307,17 +307,6 @@ server.get('/api/v1/maps-key', async (req, res) => {
       return res.status(500).json({ error: 'Google Maps API key not configured' })
     }
     
-    // Basic referrer check (add your domain in production)
-    const referrer = req.get('Referer') || req.get('Origin')
-    const allowedDomains = ['localhost', '127.0.0.1', 'yourdomain.com'] // Add your actual domain
-    
-    if (referrer) {
-      const isAllowed = allowedDomains.some(domain => referrer.includes(domain))
-      if (!isAllowed) {
-        return res.status(403).json({ error: 'Unauthorized domain' })
-      }
-    }
-    
     res.json({ apiKey: process.env.GOOGLE_MAPS_API_KEY })
   } catch (error) {
     console.error('Error serving Maps API key:', error)
