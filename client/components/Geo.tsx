@@ -588,6 +588,7 @@ function Geo() {
   };
 
   const startGame = () => {
+    queryClient.removeQueries({ queryKey: ['maps'] });
     setGameStarted(true)
     resetGameState();
     loadRandomLocation();
