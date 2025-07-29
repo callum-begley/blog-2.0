@@ -53,6 +53,7 @@ function Geo() {
   const [moving, setMoving] = useState(true);
   const [panZoom, setPanZoom] = useState(true);
   const [factNum, setFactNum] = useState(0);
+  const [isMapHovered, setIsMapHovered] = useState(false);
 
   // Fetch Google Maps API key from backend
   const { apiKey, loading: keyLoading, error: keyError } = useGoogleMapsKey();
@@ -998,8 +999,14 @@ function Geo() {
         style={ showResultsMap || showFinalResults? {
           width: mapSize.width, height: mapSize.height, 
           background: 'linear-gradient(180deg,rgba(59, 130, 246, 1) 25%, rgba(34, 197, 94, 1) 76%)'
-        } : { width: mapSize.width, height: mapSize.height }}
+        } : { 
+          width: (!showResultsMap && !showFinalResults && !isMapHovered) ? '200px' : mapSize.width, 
+          height: (!showResultsMap && !showFinalResults && !isMapHovered) ? '150px' : mapSize.height,
+          transition: 'width 0.3s ease, height 0.3s ease'
+        }}
         className={showResultsMap || showFinalResults ? 'absolute top-0 left-0 z-40 p-20 h-screen w-full bg-blue-500 flex items-center justify-center' : "dark:bg-black dark:text-white bg-white text-black absolute bottom-0 right-0 z-40" }
+        onMouseEnter={() => setIsMapHovered(true)}
+        onMouseLeave={() => setIsMapHovered(false)}
       >
         <APIProvider apiKey={apiKey} onLoad={() => {
           setMapsLoaded(true);
@@ -1058,13 +1065,13 @@ function Geo() {
    </Map>
    </div>
         </APIProvider>
-        {/* zoom buttons */}
-        {expanded === -1 && !showResultsMap && !showFinalResults ? (
+        {/* zoom buttons - only show when map is hovered and not in results mode */}
+        {isMapHovered && expanded === -1 && !showResultsMap && !showFinalResults ? (
           <button className='absolute top-0 left-0 bg-gray-500 bg-opacity-40 text-white rounded-full text-2xl/3 p-1 hover:bg-opacity-70 items-center hover:scale-125 transition-transform duration-100' onClick={expandMap} disabled={showResultsMap}>
             +
           </button>
         ) : ''}
-        {expanded === 0 && !showResultsMap && !showFinalResults ? (
+        {isMapHovered && expanded === 0 && !showResultsMap && !showFinalResults ? (
           <div className='flex absolute top-0 left-0'>
           <button className=' bg-gray-500 bg-opacity-40 text-white rounded-full text-2xl/3 p-1 hover:bg-opacity-70 items-center hover:scale-125 transition-transform duration-100 mr-0.5' onClick={expandMap} disabled={showResultsMap}>
           +
@@ -1074,7 +1081,7 @@ function Geo() {
         </button>
         </div>
         ) : ''}
-        {expanded === 1 && !showResultsMap && !showFinalResults ? (
+        {isMapHovered && expanded === 1 && !showResultsMap && !showFinalResults ? (
           <div className='flex absolute top-0 left-0'>
           <button className=' bg-gray-500 bg-opacity-40 text-white rounded-full text-2xl/3 p-1 hover:bg-opacity-70 items-center hover:scale-125 transition-transform duration-100 mr-0.5' onClick={expandMap} disabled={showResultsMap}>
           +
@@ -1084,7 +1091,7 @@ function Geo() {
         </button>
         </div>
         ) : ''}
-        {expanded === 2 && !showResultsMap && !showFinalResults ?
+        {isMapHovered && expanded === 2 && !showResultsMap && !showFinalResults ?
         <button className='absolute top-0 left-0 bg-gray-500 bg-opacity-40 text-white  rounded-full text-2xl/3 p-1 hover:bg-opacity-70 items-center hover:scale-125 transition-transform duration-100' onClick={expandMap} disabled={showResultsMap}>
           -
         </button> : ''}
