@@ -54,6 +54,7 @@ function Geo() {
   const [panZoom, setPanZoom] = useState(true);
   const [factNum, setFactNum] = useState(0);
   const [isMapHovered, setIsMapHovered] = useState(false);
+  const mapHoverTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   // Fetch Google Maps API key from backend
   const { apiKey, loading: keyLoading, error: keyError } = useGoogleMapsKey();
@@ -214,6 +215,24 @@ function Geo() {
   // Helper function to calculate score based on distance
   const calculateScore = useCallback((distance: number) => {
     return Math.max(0, 100 - Math.floor(Math.sqrt(distance) / 20));
+  }, []);
+
+  // Handle map hover with timeout
+  const handleMapMouseEnter = useCallback(() => {
+    // Clear any existing timeout
+    if (mapHoverTimeoutRef.current) {
+      clearTimeout(mapHoverTimeoutRef.current);
+      mapHoverTimeoutRef.current = null;
+    }
+    setIsMapHovered(true);
+  }, []);
+
+  const handleMapMouseLeave = useCallback(() => {
+    // Set a timeout to hide the map after 1 second
+    mapHoverTimeoutRef.current = setTimeout(() => {
+      setIsMapHovered(false);
+      mapHoverTimeoutRef.current = null;
+    }, 1000);
   }, []);
 
   const findRandomStreetViewLocation = useCallback(async () => {
@@ -479,6 +498,12 @@ function Geo() {
       if (panoramaRef.current) {
         google.maps.event.clearInstanceListeners(panoramaRef.current);
         panoramaRef.current = null;
+      }
+
+      // Clean up map hover timeout
+      if (mapHoverTimeoutRef.current) {
+        clearTimeout(mapHoverTimeoutRef.current);
+        mapHoverTimeoutRef.current = null;
       }
     };
   }, [finalPolylines]);
@@ -1005,8 +1030,8 @@ function Geo() {
           transition: 'width 0.3s ease, height 0.3s ease'
         }}
         className={showResultsMap || showFinalResults ? 'absolute top-0 left-0 z-40 p-20 h-screen w-full bg-blue-500 flex items-center justify-center' : "dark:bg-black dark:text-white bg-white text-black absolute bottom-0 right-0 z-40" }
-        onMouseEnter={() => setIsMapHovered(true)}
-        onMouseLeave={() => setIsMapHovered(false)}
+        onMouseEnter={handleMapMouseEnter}
+        onMouseLeave={handleMapMouseLeave}
       >
         <APIProvider apiKey={apiKey} onLoad={() => {
           setMapsLoaded(true);
