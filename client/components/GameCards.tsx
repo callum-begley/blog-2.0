@@ -30,7 +30,7 @@ function GameCards(){
       <a href="https://callum-begley.itch.io/insanity" target="_blank" rel="noreferrer noopener">
       <div className="bg-zinc-700 bg-opacity-40 backdrop-blur-sm grid min-h-[40rem] max-w-[22rem] rounded-2xl place-content-center text-center p-4 ring-2 dark:ring-white ring-zinc-800 my-10 hover:bg-opacity-60 dark:hover:shadow-[0px_3px_30px_rgba(137,243,54,0.7)]">
         <h2 className="text-4xl pb-2">Insanity</h2>
-        <p className="text-xl py-4 max-w-80">Made for GMTK Game Jam 2025, the theme was loops. This is a 2d platformer puzzle game that loops around the screen.</p>
+        <p className="text-xl py-4 max-w-80">Made for GMTK Game Jam 2025, the theme was loops. This is a 2D platform puzzle game that loops around the screen.</p>
         <img src="https://img.itch.zone/aW1hZ2UvMzc3NzQwNi8yMjQ4MDIxOS5wbmc=/original/%2FHvZj8.png" alt="Insanity Game" className="w-auto max-w-64 h-96 object-cover justify-self-center rounded-lg"/>
       </div>
       </a>
