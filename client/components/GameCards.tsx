@@ -1,3 +1,5 @@
+import { Link } from "react-router"
+
 function GameCards(){
 
   
@@ -18,13 +20,13 @@ function GameCards(){
         <img src="/images/pun-game.jpg" alt="Pundle Game" className="w-auto h-96 max-w-64 object-cover justify-self-center rounded-lg"/>
       </div>
       </a>
-      <a href="https://c-dfpy.onrender.com/" target="_blank" rel="noreferrer noopener">
+      <Link to="/Geo">
       <div className="bg-zinc-700 bg-opacity-40 backdrop-blur-sm grid min-h-[40rem] max-w-[22rem] rounded-2xl place-content-center text-center p-4 ring-2 dark:ring-white ring-zinc-800 my-10 hover:bg-opacity-60 dark:hover:shadow-[0px_3px_30px_rgba(137,243,54,0.7)]">
-        <h2 className="text-4xl pb-2 break-words">Conway&#39;s Game Of Life</h2>
-        <p className="text-xl py-4 max-w-80">A simple game that emulates life&#39;s complexities. <br/><a href="https://en.wikipedia.org/wiki/Conway%27s_Game_of_Life" className="underline">Wikipedia</a></p>
-        <img src="/images/conway.png" alt="Pundle Game" className="w-auto h-96 max-w-64 object-cover justify-self-center rounded-lg"/>
+        <h2 className="text-4xl pb-2 break-words">Where On Earth?</h2>
+        <p className="text-xl py-4 max-w-80">Geography guessing game using Google Streetview and Gemini AI API to generate custom locations.</p>
+        <img src="/images/geo.png" alt="Geography Game" className="w-auto h-96 max-w-64 object-cover justify-self-center rounded-lg"/>
       </div>
-      </a>
+      </Link>
     </div>
     <div className="flex flex-wrap justify-around w-full">
       <a href="https://callum-begley.itch.io/insanity" target="_blank" rel="noreferrer noopener">
