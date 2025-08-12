@@ -23,7 +23,7 @@ function GameCards(){
       <Link to="/Geo">
       <div className="bg-zinc-700 bg-opacity-40 backdrop-blur-sm grid min-h-[40rem] max-w-[22rem] rounded-2xl place-content-center text-center p-4 ring-2 dark:ring-white ring-zinc-800 my-10 hover:bg-opacity-60 dark:hover:shadow-[0px_3px_30px_rgba(137,243,54,0.7)]">
         <h2 className="text-4xl pb-2 break-words">Where On Earth?</h2>
-        <p className="text-xl py-4 max-w-80">Geography guessing game using Google Streetview and Gemini AI API to generate custom locations.</p>
+        <p className="text-xl py-4 max-w-80">Geoguessr clone using Google Streetview and Gemini AI API to generate custom locations.</p>
         <img src="/images/geo.png" alt="Geography Game" className="w-auto h-96 max-w-64 object-cover justify-self-center rounded-lg"/>
       </div>
       </Link>
