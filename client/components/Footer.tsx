@@ -1,4 +1,5 @@
 import { Link } from "react-router"
+import { HashLink } from "react-router-hash-link"
 
 function Footer() {
   return (
@@ -8,9 +9,9 @@ function Footer() {
       <div className='flex md:text-xl flex-wrap text-nowrap'>
       <p className= 'p-2'>Links: </p>
         <Link to='/' className= 'p-2 hover:text-lime-400'>Home</Link>
-        <Link to='/Blog' className= 'p-2 hover:text-lime-400'>Blog</Link>
         <Link to='/Games' className= 'p-2 hover:text-lime-400'>Games</Link>
-        <Link to='/About-Me' className= 'p-2 hover:text-lime-400'>About Me</Link>
+        <HashLink smooth to='/#About-Me' className= 'p-2 hover:text-lime-400'>About Me</HashLink>
+        <HashLink smooth to='/#contact' className= 'p-2 hover:text-lime-400'>Contact</HashLink>
       </div>
     </footer>
     </>
