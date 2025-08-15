@@ -31,6 +31,7 @@ const GamesPage = () => {
           <h2 className=" pb-1 text-4xl text-center">Pundle</h2>
           <p className="text-lg">Like wordle, but funnier. Personal project I made before Dev Academy boot camp. Made with HTML, CSS, and JavaScript.</p>
         </a>
+        
         <Link to="/Dodgeball">
         <div className="bg-zinc-700 bg-opacity-40 backdrop-blur-sm rounded-2xl place-content-center p-10 ring-2 dark:ring-white 
         ring-zinc-800 my-10 hover:bg-opacity-60 w-full grid grid-cols-2 gap-10 place-items-center">
