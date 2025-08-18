@@ -44,7 +44,7 @@ const GamesPage = () => {
         ring-zinc-800 my-10 hover:bg-opacity-60 w-full grid grid-cols-2 gap-10 place-items-center">
           <img src="/bball.webp" alt="Hoop Dreams" className="rounded-lg h-56 w-auto row-span-2"/>
           <h2 className=" pb-1 text-4xl text-center">Hoop Dreams</h2>
-          <p className="text-lg">A platformer basketball game. Reach the hoop to complete the levels. Built with Matter.js physics engine and React.</p>
+          <p className="text-lg">A platformer basketball game. Bounce to the hoop to complete the levels. Built with Matter.js physics engine and React.</p>
         </div>
         </Link>
       </div>
