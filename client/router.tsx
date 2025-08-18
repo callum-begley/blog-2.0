@@ -11,12 +11,14 @@ import GamesPage from './components/GamesPage'
 import NotFoundPage from './components/NotFoundPage'
 import Flappy from './components/Flappy'
 import Geo from './components/Geo'
+import Games from './components/Games'
 
 const routes = createRoutesFromElements(
   <Route path="/" element={<App />}>
     <Route index element={<Home />} />
     <Route path="/Dodgeball" element={<Dodgeball />} />
     <Route path="/Games" element={<GamesPage />} />
+    <Route path="/bball" element={<Games/>} />
     <Route path="/Flappy" element={<Flappy />} />
     <Route path="/Geo" element={<Geo />} />
     <Route path="*" element={<NotFoundPage />} />

@@ -39,6 +39,14 @@ const GamesPage = () => {
           <p className="text-lg">A fast-paced arcade game where you dodge falling emojis using physics-based movement. Test your reflexes and see how long you can survive! Built with Matter.js physics engine and React.</p>
         </div>
         </Link>
+        <Link to="/bball">
+        <div className="bg-zinc-700 bg-opacity-40 backdrop-blur-sm rounded-2xl place-content-center p-10 ring-2 dark:ring-white 
+        ring-zinc-800 my-10 hover:bg-opacity-60 w-full grid grid-cols-2 gap-10 place-items-center">
+          <img src="/bball.webp" alt="Hoop Dreams" className="rounded-lg h-56 w-auto row-span-2"/>
+          <h2 className=" pb-1 text-4xl text-center">Hoop Dreams</h2>
+          <p className="text-lg">A platformer basketball game. Reach the hoop to complete the levels. Built with Matter.js physics engine and React.</p>
+        </div>
+        </Link>
       </div>
     </div>
   )
