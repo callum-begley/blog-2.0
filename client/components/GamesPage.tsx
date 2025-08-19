@@ -47,6 +47,12 @@ const GamesPage = () => {
           <p className="text-lg">A platformer basketball game. Bounce to the hoop to complete the levels. Built with Matter.js physics engine and React.</p>
         </div>
         </Link>
+        <a href="https://survivalgame-j619.onrender.com/" target="_blank" rel="noopener noreferrer" className="bg-zinc-700 bg-opacity-40 backdrop-blur-sm rounded-2xl place-content-center p-10 ring-2 dark:ring-white 
+        ring-zinc-800 my-10 hover:bg-opacity-60 w-full grid grid-cols-2 gap-10 place-items-center">
+          <img src="/images/survival.png" alt="Pun Game" className="rounded-lg h-56 w-auto row-span-2 object-cover"/>
+          <h2 className=" pb-1 text-4xl text-center">Survival Game</h2>
+          <p className="text-lg">Survive as long as you can as me. Made with React.</p>
+        </a>
       </div>
     </div>
   )
